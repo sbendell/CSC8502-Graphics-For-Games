@@ -83,3 +83,9 @@ bool Shader::LoadShaderFile(string from, string& into) {
 	cout << "Loaded shader text!" << endl << endl;
 	return true;
 }
+
+void Shader::SetDefaultAttributes() {
+	glBindAttribLocation(program, VERTEX_BUFFER, "position");
+	glBindAttribLocation(program, COLOUR_BUFFER, "colour");
+}
+
