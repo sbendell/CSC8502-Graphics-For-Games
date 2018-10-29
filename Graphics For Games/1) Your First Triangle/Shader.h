@@ -10,7 +10,7 @@ using namespace std;
 class Shader
 {
 public:
-	Shader(string vertex, string fragment, string geometry = "");
+	Shader(string vertexFile, string fragmentFile, string geometryFile = "");
 	~Shader(void);
 
 	GLuint GetProgram() { return program; }
