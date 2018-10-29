@@ -62,3 +62,24 @@ GLuint Shader::GenerateShader(string from, GLenum type) {
 	loadFailed = false;
 	return shader;
 }
+
+bool Shader::LoadShaderFile(string from, string& into) {
+	ifstream file;
+	string temp;
+	
+	cout << "Loading shader text from " << from << endl << endl;
+
+	file.open(from.c_str());
+	if (!file.is_open()) {
+		cout << "File does not exist!" << endl;
+		return false;
+	}
+	while (!file.eof()) {
+		getline(file, temp);
+		into += temp + "\n";
+	}
+	file.close();
+	cout << into << endl << endl;
+	cout << "Loaded shader text!" << endl << endl;
+	return true;
+}

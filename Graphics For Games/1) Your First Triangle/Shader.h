@@ -18,7 +18,7 @@ public:
 
 protected:
 	void SetDefaultAttributes();
-	bool LoadShaderFile(string from, string &into);
+	bool LoadShaderFile(string from, string& into);
 	GLuint GenerateShader(string from, GLenum type);
 	GLuint objects[3];
 	GLuint program;
