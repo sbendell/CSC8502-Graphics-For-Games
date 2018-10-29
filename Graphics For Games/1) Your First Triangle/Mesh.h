@@ -1,9 +1,27 @@
 #pragma once
-#include "OGLRenderer.h"
+#include "../../nclgl/OGLRenderer.h"
+
+enum MeshBuffer {
+	VERTEX_BUFFER, COLOUR_BUFFER, MAX_BUFFER
+};
+
 class Mesh
 {
 public:
-	Mesh();
-	~Mesh();
+	Mesh(void);
+	~Mesh(void);
+
+	virtual void Draw();
+	static Mesh* GenerateTriangle();
+protected:
+	void BufferData();
+
+	GLuint arrayObject;
+	GLuint bufferObject[MAX_BUFFER];
+	GLuint numVertices;
+	GLuint type;
+
+	Vector3* vertices;
+	Vector4* colours;
 };
 
