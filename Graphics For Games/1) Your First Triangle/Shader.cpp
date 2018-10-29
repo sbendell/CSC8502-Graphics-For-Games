@@ -23,4 +23,10 @@ Shader::Shader(string vertexFile, string fragmentFile, string geometryFile)
 
 Shader::~Shader()
 {
+	for (int i = 0; i < 3; i++)
+	{
+		glDetachShader(program, objects[i]);
+		glDeleteShader(objects[i]);
+	}
+	glDeleteProgram(program);
 }
