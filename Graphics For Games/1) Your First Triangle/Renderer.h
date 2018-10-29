@@ -10,4 +10,5 @@ public:
 
 protected:
 	Mesh* triangle;
+	Mesh* square;
 };
