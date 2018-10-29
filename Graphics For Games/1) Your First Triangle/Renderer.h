@@ -4,7 +4,7 @@
 class Renderer : public OGLRenderer
 {
 public:
-	Renderer(Window &parent);
+	Renderer(Window& parent);
 	virtual ~Renderer(void);
 	virtual void RenderScene();
 
