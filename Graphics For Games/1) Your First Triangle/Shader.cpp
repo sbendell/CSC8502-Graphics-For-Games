@@ -89,3 +89,13 @@ void Shader::SetDefaultAttributes() {
 	glBindAttribLocation(program, COLOUR_BUFFER, "colour");
 }
 
+bool Shader::LinkProgram() {
+	if (loadFailed) {
+		return false;
+	}
+	glLinkProgram(program);
+
+	GLint code;
+	glGetProgramiv(program, GL_LINK_STATUS, &code);
+	return code == GL_TRUE ? true : false;
+}
