@@ -39,3 +39,20 @@ Mesh* Mesh::GenerateTriangle() {
 	m->BufferData();
 	return m;
 }
+
+void Mesh::BufferData() {
+	glBindVertexArray(arrayObject);
+	glGenBuffers(1, &bufferObject[VERTEX_BUFFER]);
+	glBindBuffer(GL_ARRAY_BUFFER, bufferObject[VERTEX_BUFFER]);
+	glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(Vector3), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(VERTEX_BUFFER, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(VERTEX_BUFFER);
+	if (colours) {
+		glGenBuffers(1, &bufferObject[COLOUR_BUFFER]);
+		glBindBuffer(GL_ARRAY_BUFFER, bufferObject[COLOUR_BUFFER]);
+		glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(Vector4), colours, GL_STATIC_DRAW);
+		glVertexAttribPointer(COLOUR_BUFFER, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(COLOUR_BUFFER);
+	}
+	glBindVertexArray(0);
+}
