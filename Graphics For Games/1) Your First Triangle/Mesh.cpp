@@ -56,3 +56,9 @@ void Mesh::BufferData() {
 	}
 	glBindVertexArray(0);
 }
+
+void Mesh::Draw() {
+	glBindVertexArray(arrayObject);
+	glDrawArrays(type, 0, numVertices);
+	glBindVertexArray(0);
+}
