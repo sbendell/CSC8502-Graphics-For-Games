@@ -13,6 +13,7 @@ public:
 
 	virtual void Draw();
 	static Mesh* GenerateTriangle();
+	static Mesh* GenerateSquare();
 protected:
 	void BufferData();
 
