@@ -15,7 +15,8 @@ public:
 	static Mesh* GenerateTriangle();
 	static Mesh* GenerateSquare();
 
-	
+	void SetTexture(GLuint tex) { texture = tex; }
+	GLuint GetTexture() { return texture; }
 protected:
 	void BufferData();
 
@@ -26,5 +27,8 @@ protected:
 
 	Vector3* vertices;
 	Vector4* colours;
+
+	GLuint texture;
+	Vector2* textureCoords;
 };
 
