@@ -15,6 +15,10 @@ public:
 	inline void SetRotation(float r) { rotation = r; }
 	inline void SetPosition(Vector3 p) { position = p; }
 	inline void SetFOV(float f) { fov = f; }
+
+	void UpdateTextureMatrix(float rotation);
+	void ToggleRepetaing();
+	void ToggleFiltering();
 protected:
 	Mesh* triangle;
 
@@ -22,4 +26,7 @@ protected:
 	float rotation;
 	Vector3 position;
 	float fov;
+
+	bool filtering;
+	bool repeating;
 };

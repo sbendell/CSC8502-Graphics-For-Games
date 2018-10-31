@@ -7,12 +7,22 @@ Renderer::Renderer(Window& parent):
 {
 	triangle = Mesh::GenerateSquare();
 
+	triangle->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"brick.tga",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
+
 	currentShader = new Shader("../../Shaders/MatrixVertex.glsl",
 		"../../Shaders/colourFragment.glsl");
+
+	if (!triangle->GetTexture()) {
+		return;
+	}
 
 	if (!currentShader->LinkProgram()) {
 		return;
 	}
+
+	filtering = true;
+	repeating = false;
 
 	init = true;
 	SwitchToOrthographic();
@@ -25,16 +35,16 @@ Renderer::~Renderer()
 }
 
 void Renderer::RenderScene() {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(currentShader->GetProgram());
 
 	glUniformMatrix4fv(glGetUniformLocation(currentShader -> GetProgram(),
 		"projMatrix"), 1, false, (float*)&projMatrix);
 
-	glUniformMatrix4fv(glGetUniformLocation(currentShader -> GetProgram(),		"viewMatrix"), 1, false, (float*)&viewMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(currentShader -> GetProgram(),		"viewMatrix"), 1, false, (float*)&viewMatrix);	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),		"diffuseTex"), 0);
 
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		Vector3 tempPos = position;
 		tempPos.z += (i*500.0f);
@@ -64,4 +74,31 @@ void Renderer::SwitchToPerspective() {
 void Renderer::SwitchToOrthographic() {
 	projMatrix = Matrix4::Orthographic(-1.0f, 10000.0f,
 		width / 2.0f, -width / 2.0f, height / 2.0f, -height / 2.0f);
+}
+
+void Renderer::UpdateTextureMatrix(float value) {
+	Matrix4 pushPos = Matrix4::Translation(Vector3(0.5f, 0.5f, 0));
+	Matrix4 popPos = Matrix4::Translation(Vector3(-0.5f, -0.5f, 0));
+	Matrix4 rotation = Matrix4::Rotation(value, Vector3(0, 0, 1));
+	textureMatrix = pushPos * rotation * popPos;
+}
+
+void Renderer::ToggleRepetaing() {
+	repeating = !repeating;
+	glBindTexture(GL_TEXTURE_2D, triangle->GetTexture());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+		repeating ? GL_REPEAT : GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+		repeating ? GL_REPEAT : GL_CLAMP);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Renderer::ToggleFiltering() {
+	filtering = !filtering;
+	glBindTexture(GL_TEXTURE_2D, triangle->GetTexture());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		filtering ? GL_LINEAR : GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		filtering ? GL_LINEAR : GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
