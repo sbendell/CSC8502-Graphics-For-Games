@@ -20,12 +20,10 @@ int main() {
 	float fov = 45.0f;
 
 	while(w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)){
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_1))
-			//renderer.SwitchToOrthographic();
-			renderer.ToggleFiltering();
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_2))
-			//renderer.SwitchToPerspective();
-			renderer.ToggleRepetaing();
+		if(Window::GetKeyboard()->KeyDown(KEYBOARD_1)) 
+			renderer.SwitchToOrthographic();
+		if(Window::GetKeyboard()->KeyDown(KEYBOARD_2))
+			renderer.SwitchToPerspective();
 
 		if(Window::GetKeyboard()->KeyDown(KEYBOARD_PLUS))
 			++scale;
