@@ -6,6 +6,7 @@ Renderer::Renderer(Window& parent):
 	OGLRenderer(parent)
 {
 	triangle = Mesh::GenerateSquare();
+	camera = new Camera(0.0f, 0.0f, Vector3(0.0f, 0.0f, 0.0f));
 
 	currentShader = new Shader("../../Shaders/MatrixVertex.glsl",
 		"../../Shaders/colourFragment.glsl");
@@ -56,6 +57,11 @@ void Renderer::RenderScene() {
 	glUseProgram(0);
 
 	SwapBuffers();
+}
+
+void Renderer::UpdateScene(float msec) {
+	camera->UpdateCamera(msec);
+	viewMatrix = camera->BuildViewMatrix();
 }
 
 void Renderer::SwitchToPerspective() {
