@@ -8,8 +8,8 @@ Renderer::Renderer(Window& parent):
 	triangle = Mesh::GenerateTriangle();
 	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(0.0f, 0.0f, 0.0f), 2.0f);
 
-	currentShader = new Shader("../../Shaders/MatrixVertex.glsl",
-		"../../Shaders/colourFragment.glsl");
+	currentShader = new Shader("../../Shaders/TexturedVertex.glsl",
+		"../../Shaders/TexturedFragment.glsl");
 
 	triangle->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"brick.tga",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
@@ -22,7 +22,7 @@ Renderer::Renderer(Window& parent):
 	}
 
 	init = true;
-	SwitchToOrthographic();
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, 1, -1);
 
 	filtering = true;
 	repeating = false;
