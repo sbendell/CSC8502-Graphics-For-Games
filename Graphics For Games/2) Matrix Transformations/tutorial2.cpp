@@ -63,7 +63,10 @@ int main() {
 		renderer.SetScale(scale);
 		renderer.SetPosition(position);
 		renderer.SetFOV(fov);
+		renderer.UpdateScene(w.GetTimer()->GetTimedMS());
 		renderer.RenderScene();
+		SetCursorPos((int)w.GetScreenPosition().x + (int)w.GetScreenSize().x / 2,
+			(int)w.GetScreenPosition().y + (int)w.GetScreenSize().y / 2);
 	}
 
 	return 0;

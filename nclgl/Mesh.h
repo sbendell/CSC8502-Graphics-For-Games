@@ -14,6 +14,7 @@ public:
 	virtual void Draw();
 	static Mesh* GenerateTriangle();
 	static Mesh* GenerateSquare();
+	static Mesh* GenerateCube();
 
 	
 protected:

@@ -41,6 +41,7 @@ public:
 	void	ShowOSPointer(bool show);
 
 	Vector2	GetScreenSize() {return size;};
+	Vector2 GetScreenPosition() { return position; }
 
 	static Keyboard*	GetKeyboard()	{return keyboard;}
 	static Mouse*		GetMouse()		{return mouse;}
