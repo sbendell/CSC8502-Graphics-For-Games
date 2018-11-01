@@ -6,7 +6,7 @@ Renderer::Renderer(Window& parent):
 	OGLRenderer(parent)
 {
 	triangle = Mesh::GenerateTriangle();
-	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(0.0f, 0.0f, 0.0f), 2.0f);
+	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(0.0f, 0.0f, 10.0f), 0.001f);
 
 	currentShader = new Shader("../../Shaders/TexturedVertex.glsl",
 		"../../Shaders/TexturedFragment.glsl");
@@ -22,7 +22,6 @@ Renderer::Renderer(Window& parent):
 	}
 
 	init = true;
-	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, 1, -1);
 
 	filtering = true;
 	repeating = false;
