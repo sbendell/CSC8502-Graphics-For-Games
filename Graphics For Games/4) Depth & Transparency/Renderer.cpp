@@ -12,7 +12,8 @@ Renderer::Renderer(Window& parent):
 		"../../Shaders/TexturedFragment.glsl");
 
 	triangle->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"brick.tga",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
+
 	if (!triangle->GetTexture()) {
 		return;
 	}
@@ -24,7 +25,8 @@ Renderer::Renderer(Window& parent):
 	init = true;
 
 	filtering = true;
-	repeating = false;
+	repeating = false;
+
 }
 
 
