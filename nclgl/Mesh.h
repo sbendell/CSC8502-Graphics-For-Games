@@ -2,7 +2,7 @@
 #include "../../nclgl/OGLRenderer.h"
 
 enum MeshBuffer {
-	VERTEX_BUFFER, COLOUR_BUFFER, MAX_BUFFER
+	VERTEX_BUFFER, COLOUR_BUFFER, TEXTURE_BUFFER, MAX_BUFFER
 };
 
 class Mesh
@@ -16,7 +16,9 @@ public:
 	static Mesh* GenerateSquare();
 	static Mesh* GenerateCube();
 
-	
+	void SetTexture(GLuint tex) { texture = tex; }
+	GLuint GetTextre() { return texture; }
+
 protected:
 	void BufferData();
 
@@ -27,5 +29,8 @@ protected:
 
 	Vector3* vertices;
 	Vector4* colours;
+
+	GLuint texture;
+	Vector2* textureCoords;
 };
 
