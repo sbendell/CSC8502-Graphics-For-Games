@@ -63,6 +63,36 @@ Mesh* Mesh::GenerateSquare() {
 	return m;
 }
 
+Mesh* Mesh::GenerateCube() {
+	Mesh* m = new Mesh();
+	m->numVertices = 14;
+	m->type = GL_TRIANGLE_STRIP;
+	m->vertices = new Vector3[m->numVertices];
+	m->vertices[0] = Vector3(-1.f, 1.f, 1.f);
+	m->vertices[1] = Vector3(1.f, 1.f, 1.f);
+	m->vertices[2] = Vector3(-1.f, -1.f, 1.f);
+	m->vertices[3] = Vector3(1.f, -1.f, 1.f);
+	m->vertices[4] = Vector3(1.f, -1.f, -1.f);
+	m->vertices[5] = Vector3(1.f, 1.f, 1.f);
+	m->vertices[6] = Vector3(1.f, 1.f, -1.f);
+	m->vertices[7] = Vector3(-1.f, 1.f, 1.f);
+	m->vertices[8] = Vector3(-1.f, 1.f, -1.f);
+	m->vertices[9] = Vector3(-1.f, -1.f, 1.f);
+	m->vertices[10] = Vector3(-1.f, -1.f, -1.f);
+	m->vertices[11] = Vector3(1.f, -1.f, -1.f);
+	m->vertices[12] = Vector3(-1.f, 1.f, -1.f);
+	m->vertices[13] = Vector3(1.f, 1.f, -1.f);
+
+	m->colours = new Vector4[m->numVertices];
+	for (int i = 0; i < 14; i++)
+	{
+		m->colours[i] = Vector4(0.06f * i, 0.0f, 0.0f, 1.0f);
+	}
+
+	m->BufferData();
+	return m;
+}
+
 void Mesh::BufferData() {
 	glBindVertexArray(arrayObject);
 	glGenBuffers(1, &bufferObject[VERTEX_BUFFER]);

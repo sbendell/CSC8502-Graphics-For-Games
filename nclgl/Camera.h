@@ -25,11 +25,12 @@ public:
 		roll = 0.0f;
 	};
 
-	Camera(float pitch, float yaw, float roll, Vector3 position){
+	Camera(float pitch, float yaw, float roll, Vector3 position, float speed){
 		this->pitch		= pitch;
 		this->yaw		= yaw;
 		this->roll = roll;
 		this->position	= position;
+		this->speed = speed;
 	}
 
 	~Camera(void){};
@@ -38,7 +39,7 @@ public:
 
 	//Builds a view matrix for the current camera variables, suitable for sending straight
 	//to a vertex shader (i.e it's already an 'inverse camera matrix').
-	Matrix4 BuildViewMatrix(float scale);
+	Matrix4 BuildViewMatrix();
 
 	//Gets position in world space
 	Vector3 GetPosition() const { return position;}
@@ -59,9 +60,14 @@ public:
 
 	void SetRoll(float r) { roll = r; }
 
+	float GetSpeed() const { return speed; }
+
+	void SetSpeed(float s) { speed = s; }
+
 protected:
 	float	yaw;
 	float	pitch;
 	float roll;
 	Vector3 position;
+	float speed;
 };

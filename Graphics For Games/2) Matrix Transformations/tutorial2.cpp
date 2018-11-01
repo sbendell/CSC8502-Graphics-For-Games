@@ -15,12 +15,9 @@ int main() {
 	}
 
 	float scale		= 100.0f;
-	float cameraScale = 1.0f;
 	float rotation	= 0.0f;
 	Vector3 position(0, 0, -1500.0f);
 	float fov = 45.0f;
-
-	w.LockMouseToWindow(true);
 
 	while(w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)){
 		if(Window::GetKeyboard()->KeyDown(KEYBOARD_1)) 
@@ -54,13 +51,11 @@ int main() {
 			position.z+= 1.0f;
 
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_N)) {
-			//fov -= 1.0f;
-			cameraScale -= 0.1f;
+			fov -= 1.0f;
 			renderer.SwitchToPerspective();
 		}
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_M)) {
-			//fov += 1.0f;
-			cameraScale += 0.1f;
+			fov += 1.0f;
 			renderer.SwitchToPerspective();
 		}
 
@@ -68,8 +63,10 @@ int main() {
 		renderer.SetScale(scale);
 		renderer.SetPosition(position);
 		renderer.SetFOV(fov);
-		renderer.UpdateScene(w.GetTimer()->GetTimedMS(), cameraScale);
+		renderer.UpdateScene(w.GetTimer()->GetTimedMS());
 		renderer.RenderScene();
+		SetCursorPos((int)w.GetScreenPosition().x + (int)w.GetScreenSize().x / 2,
+			(int)w.GetScreenPosition().y + (int)w.GetScreenSize().y / 2);
 	}
 
 	return 0;

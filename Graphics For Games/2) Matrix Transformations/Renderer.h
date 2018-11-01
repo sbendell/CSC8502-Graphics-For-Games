@@ -8,7 +8,7 @@ public:
 	Renderer(Window& parent);
 	virtual ~Renderer(void);
 	virtual void RenderScene();
-	virtual void UpdateScene(float msec, float scale);
+	virtual void UpdateScene(float msec);
 
 	void SwitchToPerspective();
 	void SwitchToOrthographic();
