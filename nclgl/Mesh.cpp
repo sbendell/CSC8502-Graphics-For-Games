@@ -12,6 +12,8 @@ Mesh::Mesh(void)
 	vertices = NULL;
 	colours = NULL;
 	type = GL_TRIANGLES;
+	texture = 0;
+	textureCoords = NULL;
 }
 
 
@@ -19,8 +21,10 @@ Mesh::~Mesh(void)
 {
 	glDeleteVertexArrays(1, &arrayObject);
 	glDeleteBuffers(MAX_BUFFER, bufferObject);
+	glDeleteTextures(1, &texture);
 	delete[] vertices;
 	delete[] colours;
+	delete[] textureCoords;
 }
 
 Mesh* Mesh::GenerateTriangle() {
@@ -112,6 +116,8 @@ void Mesh::BufferData() {
 
 void Mesh::Draw() {
 	glBindVertexArray(arrayObject);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(type, 0, numVertices);
 	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
