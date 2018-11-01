@@ -17,7 +17,7 @@ public:
 	static Mesh* GenerateCube();
 
 	void SetTexture(GLuint tex) { texture = tex; }
-	GLuint GetTextre() { return texture; }
+	GLuint GetTexture() { return texture; }
 
 protected:
 	void BufferData();
