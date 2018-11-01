@@ -14,8 +14,8 @@ public:
 	void SwitchToOrthographic();
 
 	void UpdateTextureMatrix(float rotation);
-	void ToggleRepeating();
-	void ToggleFiltering();
+	void ToggleRepeating(Mesh* mesh);
+	void ToggleFiltering(Mesh* mesh);
 
 	void ToggleObject();
 	void ToggleDepth();
