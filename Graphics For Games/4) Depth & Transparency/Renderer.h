@@ -43,7 +43,7 @@ protected:
 	bool modifyObject;
 	bool usingDepth;
 	bool usingAlpha;
-	int blendMode;
+	int blendMode;
 
 	float scale;
 	float rotation;
