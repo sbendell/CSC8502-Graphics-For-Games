@@ -13,6 +13,10 @@ public:
 	void SwitchToPerspective();
 	void SwitchToOrthographic();
 
+	void UpdateTextureMatrix(float rotation);
+	void ToggleRepeating();
+	void ToggleFiltering();
+
 	inline void SetScale(float s) { scale = s; }
 	inline void SetRotation(float r) { rotation = r; }
 	inline void SetPosition(Vector3 p) { position = p; }
@@ -20,6 +24,9 @@ public:
 protected:
 	Mesh* triangle;
 	Camera* camera;
+
+	bool filtering;
+	bool repeating;
 
 	float scale;
 	float rotation;
