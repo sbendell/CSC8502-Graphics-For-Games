@@ -5,13 +5,13 @@
 Renderer::Renderer(Window& parent):
 	OGLRenderer(parent)
 {
-	triangle = Mesh::GenerateCube();
+	triangle = Mesh::GenerateTriangle();
 	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(0.0f, 0.0f, 0.0f), 2.0f);
 
 	currentShader = new Shader("../../Shaders/MatrixVertex.glsl",
 		"../../Shaders/colourFragment.glsl");
 
-	triangle->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "brick.tga",
+	triangle->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"brick.tga",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
 	if (!triangle->GetTexture()) {
 		return;
