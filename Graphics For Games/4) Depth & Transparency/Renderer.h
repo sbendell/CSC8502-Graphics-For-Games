@@ -28,6 +28,8 @@ public:
 	inline void SetRotation(float r) { rotation = r; }
 	inline void SetPosition(Vector3 p) { position = p; }
 	inline void SetFOV(float f) { fov = f; }
+
+	float mixVal = 0.5f;
 protected:
 	Mesh * meshes[2];
 	Vector3 positions[2];

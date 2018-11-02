@@ -40,6 +40,12 @@ int main()	{
 		if(Window::GetKeyboard()->KeyDown(KEYBOARD_DOWN)) {
 			renderer.MoveObject(-0.1f);
 		}
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_LEFT)) {
+			renderer.mixVal -= 0.01f;
+		}
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_RIGHT)) {
+			renderer.mixVal += 0.01f;
+		}
 
 		renderer.SetRotation(rotation);
 		renderer.SetScale(scale);
@@ -49,8 +55,8 @@ int main()	{
 		renderer.UpdateScene(w.GetTimer()->GetTimedMS());
 		renderer.RenderScene();
 
-		SetCursorPos((int)w.GetScreenPosition().x + (int)w.GetScreenSize().x / 2,
-			(int)w.GetScreenPosition().y + (int)w.GetScreenSize().y / 2);
+		/*SetCursorPos((int)w.GetScreenPosition().x + (int)w.GetScreenSize().x / 2,
+			(int)w.GetScreenPosition().y + (int)w.GetScreenSize().y / 2);*/
 	}
 
 	return 0;

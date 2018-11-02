@@ -68,6 +68,8 @@ void Renderer::RenderScene() {
 		"mixTex"), 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, meshes[1]->GetTexture());
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"mixVal"), mixVal);
 
 	for (unsigned int i = 0; i < 2; ++i) {
 		glUniformMatrix4fv(glGetUniformLocation(
