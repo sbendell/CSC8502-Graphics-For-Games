@@ -21,7 +21,8 @@ public:
 	void ToggleDepth();
 	void ToggleAlphaBlend();
 	void ToggleBlendMode();
-	void MoveObject(float by);
+	void MoveObject(float by);
+
 
 	inline void SetScale(float s) { scale = s; }
 	inline void SetRotation(float r) { rotation = r; }
@@ -29,16 +30,12 @@ public:
 	inline void SetFOV(float f) { fov = f; }
 protected:
 	Mesh * meshes[2];
-	Vector3 positions[2];
+	Vector3 positions[2];
+
 	Camera* camera;
 
 	bool filtering;
 	bool repeating;
-
-	Matrix4 textureMatrix;
-	Matrix4 modelMatrix;
-	Matrix4 projMatrix;
-	Matrix4 viewMatrix;
 
 	bool modifyObject;
 	bool usingDepth;

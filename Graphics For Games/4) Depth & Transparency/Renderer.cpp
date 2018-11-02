@@ -40,7 +40,8 @@ Renderer::Renderer(Window& parent):
 	modifyObject = true;
 
 	projMatrix = Matrix4::Perspective(1.0f, 100.0f,
-		(float)width / (float)height, 45.0f);
+		(float)width / (float)height, 45.0f);
+
 }
 
 
@@ -55,23 +56,23 @@ void Renderer::RenderScene() {
 
 	glUseProgram(currentShader->GetProgram());
 
-	//UpdateShaderMatrices();
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"textureMatrix"), 1, false, (float*)&textureMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"viewMatrix"), 1, false, (float*)&viewMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"projMatrix"), 1, false, (float*)&projMatrix);
+	UpdateShaderMatrices();
 	
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"diffuseTex"), 0);
-
 	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, meshes[0]->GetTexture());
+
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"mixTex"), 1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, meshes[1]->GetTexture());
+
 	for (unsigned int i = 0; i < 2; ++i) {
 		glUniformMatrix4fv(glGetUniformLocation(
 			currentShader->GetProgram(), "modelMatrix"), 1, false,
 			(float*)& Matrix4::Translation(positions[i]));
-		glBindTexture(GL_TEXTURE_2D, meshes[i]->GetTexture());
 		meshes[i]->Draw();
 	}
 	glUseProgram(0);
