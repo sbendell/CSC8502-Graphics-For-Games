@@ -12,7 +12,7 @@ public:
 	~SceneNode(void);
 
 	void SetTransform(const Matrix4& matrix) { transform = matrix; }
-	const Matrix4 & GetTransform() const { return transform; }
+	const Matrix4& GetTransform() const { return transform; }
 	Matrix4 GetWorldTransform() const { return worldTransform; }
 
 	Vector4 GetColour() const { return colour; }
