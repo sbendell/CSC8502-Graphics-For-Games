@@ -18,12 +18,12 @@ CubeRobot::CubeRobot(void) {
 	
 	leftArm = new SceneNode(cube, Vector4(0, 0, 1, 1)); // Blue !
 	leftArm->SetModelScale(Vector3(3, 18, 3));
-	leftArm->SetTransform(Matrix4::Translation(Vector3(-12, 30, -1)));
+	leftArm->SetTransform(Matrix4::Translation(Vector3(-12, 30, -1)) * Matrix4::Rotation(180, Vector3(1, 0, 0)));
 	body->AddChild(leftArm);
 	
 	rightArm = new SceneNode(cube, Vector4(0, 0, 1, 1)); // Blue !
 	rightArm->SetModelScale(Vector3(3, 18, 3));
-	rightArm->SetTransform(Matrix4::Translation(Vector3(12, 30, -1)));
+	rightArm->SetTransform(Matrix4::Translation(Vector3(12, 30, -1)) * Matrix4::Rotation(180, Vector3(1, 0, 0)));
 	body->AddChild(rightArm);
 	
 	SceneNode* leftLeg = new SceneNode(cube, Vector4(0, 0, 1, 1)); // Blue !

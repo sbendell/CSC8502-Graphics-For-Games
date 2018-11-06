@@ -4,6 +4,7 @@
     <ClCompile Include="tutorial8.cpp" />
     <ClCompile Include="CubeRobot.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
