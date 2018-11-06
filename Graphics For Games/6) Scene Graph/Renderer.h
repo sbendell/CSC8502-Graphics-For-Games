@@ -13,8 +13,9 @@ public:
 	virtual void UpdateScene(float msec);
 	virtual void RenderScene();
 
+	SceneNode* root;
+
 protected:
 	void DrawNode(SceneNode* n);
 
-	SceneNode* root;
 	Camera* camera;};

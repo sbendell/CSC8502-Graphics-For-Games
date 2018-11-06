@@ -28,6 +28,9 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 	init = true;
 
 }
@@ -40,7 +43,7 @@ Renderer ::~Renderer(void) {
 void Renderer::UpdateScene(float msec) {
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
-	root->Update(msec);
+	//root->Update(msec);
 }
 
 void Renderer::RenderScene() {
