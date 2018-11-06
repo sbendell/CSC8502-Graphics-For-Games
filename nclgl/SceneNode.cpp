@@ -15,8 +15,16 @@ SceneNode ::~SceneNode(void) {
 
 void SceneNode::AddChild(SceneNode* s) {
 	children.push_back(s);
-	s->parent = this;}void SceneNode::Draw(const OGLRenderer& r) {
-	if (mesh) {		mesh->Draw();	}}void SceneNode::Update(float msec) {
+	s->parent = this;
+}
+
+void SceneNode::Draw(const OGLRenderer& r) {
+	if (mesh) {
+		mesh->Draw();
+	}
+}
+
+void SceneNode::Update(float msec) {
 	if (parent) { // This node has a parent ...
 		worldTransform = parent->worldTransform * transform;
 	}
@@ -26,4 +34,5 @@ void SceneNode::AddChild(SceneNode* s) {
 
 	for (vector<SceneNode*>::iterator i = children.begin(); i != children.end(); ++i) {
 		(*i)->Update(msec);
-	}}
+	}
+}
