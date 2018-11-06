@@ -14,6 +14,8 @@ Mesh::Mesh(void)
 	type = GL_TRIANGLES;
 	texture = 0;
 	textureCoords = NULL;
+	indices = NULL;
+	numIndices = 0;
 }
 
 
@@ -25,6 +27,7 @@ Mesh::~Mesh(void)
 	delete[] vertices;
 	delete[] colours;
 	delete[] textureCoords;
+	delete[] indices;
 }
 
 Mesh* Mesh::GenerateTriangle() {
