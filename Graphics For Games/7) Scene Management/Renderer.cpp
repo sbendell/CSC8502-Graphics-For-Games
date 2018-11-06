@@ -3,6 +3,7 @@
 Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	CubeRobot::CreateCube(); // Important !
 	camera = new Camera();
+	camera->SetPosition(Vector3(0, 100, 750.0f));
 
 	currentShader = new Shader(SHADERDIR "SceneVertex.glsl",
 		SHADERDIR "SceneFragment.glsl");
@@ -14,25 +15,29 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	projMatrix = Matrix4::Perspective(1.0f, 10000.0f,
 		(float)width / (float)height, 45.0f);
 
-	camera->SetPosition(Vector3(0, 30, 175));
+	quad = Mesh::GenerateQuad();
+	quad->SetTexture(SOIL_load_OGL_texture(
+		TEXTUREDIR "stainedglass.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
 
 	root = new SceneNode();
-	for (int i = 0; i < 50; i++)
-	{
-		for (int x = 0; x < 50; x++)
-		{
-			root->AddChild(new CubeRobot());
-			auto robot = root->GetChildIteratorStart() + x + (50 * i);
-			(*robot)->SetTransform(Matrix4::Translation(Vector3(40 * x , 0, 40 * i)));
-		}
+	for (int i = 0; i < 5; ++i) {
+		SceneNode * s = new SceneNode();
+		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.5f));
+		s->SetTransform(Matrix4::Translation(
+		Vector3(0, 100.0f, -300.0f + 100.0f + 100 * i)));
+		s->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
+		s->SetBoundingRadius(100.0f);
+		s->SetMesh(quad);
+		root->AddChild(s);
 	}
+	root->AddChild(new CubeRobot());
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	init = true;
-
 }
 
 Renderer ::~Renderer(void) {
