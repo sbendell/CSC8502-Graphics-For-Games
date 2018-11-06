@@ -30,11 +30,18 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		s->SetMesh(quad);
 		root->AddChild(s);
 	}
-	root->AddChild(new CubeRobot());
+	for (int i = 0; i < 25; i++)
+	{
+		for (int x = 0; x < 25; x++)
+		{
+			root->AddChild(new CubeRobot());
+			auto robot = root->GetChildIteratorStart() + 5 + x + (25 * i);
+			(*robot)->SetTransform(Matrix4::Translation(Vector3(40 * x, 0, 40 * i)));
+		}
+	}
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	init = true;
@@ -42,28 +49,72 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 Renderer ::~Renderer(void) {
 	delete root;
+	delete quad;
+	delete camera;
 	CubeRobot::DeleteCube(); // Also important !
 }
 
 void Renderer::UpdateScene(float msec) {
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
-	//root->Update(msec);
+	frameFrustum.FromMatrix(projMatrix*viewMatrix);
+	root->Update(msec);
 }
 
 void Renderer::RenderScene() {
+	BuildNodeLists(root);
+	SortNodeLists();
+
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(currentShader->GetProgram());
 	UpdateShaderMatrices();
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"diffuseTex"), 1);
+		"diffuseTex"), 0);
 
-	DrawNode(root);
+	DrawNodes();
 
 	glUseProgram(0);
 	SwapBuffers();
+	ClearNodeLists();
+}
+
+void Renderer::BuildNodeLists(SceneNode * from) {
+	if (frameFrustum.InsideFrustum(*from)) {
+		Vector3 dir = from->GetWorldTransform().GetPositionVector() - camera->GetPosition();
+		from->SetCameraDistance(Vector3::Dot(dir, dir));
+
+		if (from->GetColour().w < 1.0f) {
+			transparentNodeList.push_back(from);
+		}
+		else {
+			nodeList.push_back(from);
+		}
+	}
+	for (vector<SceneNode*>::const_iterator i = from->GetChildIteratorStart();
+		i != from->GetChildIteratorEnd(); ++i) {
+		BuildNodeLists((*i));
+	}
+}
+
+void Renderer::SortNodeLists() {
+	std::sort(transparentNodeList.begin(), transparentNodeList.end(), SceneNode::CompareByCameraDistance);
+	std::sort(nodeList.begin(), nodeList.end(), SceneNode::CompareByCameraDistance);
+}
+
+void Renderer::ClearNodeLists() {
+	transparentNodeList.clear();
+	nodeList.clear();
+}
+
+void Renderer::DrawNodes() {
+	for (vector<SceneNode*>::const_iterator i = nodeList.begin(); i != nodeList.end(); ++i) {
+		DrawNode((*i));
+	}
+	for (vector<SceneNode*>::const_reverse_iterator i = transparentNodeList.rbegin(); i != transparentNodeList.rend(); ++i) {
+		DrawNode((*i));
+	}
 }
 
 void Renderer::DrawNode(SceneNode* n) {
@@ -81,8 +132,5 @@ void Renderer::DrawNode(SceneNode* n) {
 			"useTexture"), (int)n->GetMesh()->GetTexture());
 
 		n->Draw(*this);
-	}
-	for (vector<SceneNode*>::const_iterator i = n->GetChildIteratorStart(); i != n-> GetChildIteratorEnd(); ++i) {
-		DrawNode(*i);
 	}
 }
