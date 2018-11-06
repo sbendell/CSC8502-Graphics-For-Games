@@ -34,7 +34,10 @@ CubeRobot::CubeRobot(void) {
 	SceneNode* rightLeg = new SceneNode(cube, Vector4(0, 0, 1, 1)); // Blue !
 	rightLeg->SetModelScale(Vector3(3, 17.5, 3));
 	rightLeg->SetTransform(Matrix4::Translation(Vector3(8, 0, 0)) * Matrix4::Rotation(180, Vector3(1, 0, 0)));
-	body->AddChild(rightLeg);}void CubeRobot::Update(float msec) {
+	body->AddChild(rightLeg);
+}
+
+void CubeRobot::Update(float msec) {
 	transform = transform *
 	Matrix4::Rotation(msec / 10.0f, Vector3(0, 1, 0));
 
