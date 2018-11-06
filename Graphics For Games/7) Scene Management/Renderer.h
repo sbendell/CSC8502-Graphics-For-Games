@@ -1,9 +1,11 @@
 #pragma once
 
-# include "../../nclgl/OGLRenderer.h"
-# include "../../nclgl/Camera.h"
-# include "../../nclgl/SceneNode.h"
-# include "CubeRobot.h"
+#include "../../nclgl/OGLRenderer.h"
+#include "../../nclgl/Camera.h"
+#include "../../nclgl/SceneNode.h"
+#include "../../nclgl/Frustum.h"
+#include "CubeRobot.h"
+#include <algorithm>
 
 class Renderer : public OGLRenderer {
 public:
@@ -13,9 +15,19 @@ public:
 	virtual void UpdateScene(float msec);
 	virtual void RenderScene();
 
-	SceneNode* root;
-
 protected:
+	void BuildNodeLists(SceneNode* from);
+	void SortNodeLists();
+	void ClearNodeLists();
+	void DrawNodes();
 	void DrawNode(SceneNode* n);
 
-	Camera* camera;};
+	SceneNode* root;
+	Camera* camera;
+	Mesh* quad;
+
+	Frustum frameFrustum;
+
+	vector<SceneNode*> transparentNodeList;
+	vector<SceneNode*> nodeList;
+};
