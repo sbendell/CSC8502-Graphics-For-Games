@@ -24,18 +24,21 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		SceneNode * s = new SceneNode();
 		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.5f));
 		s->SetTransform(Matrix4::Translation(
-		Vector3(0, 100.0f, -300.0f + 100.0f + 100 * i)));
-		s->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
+		Vector3(200, 100.0f, 100 * i)));
+		s->SetModelScale(Vector3(100.0f, 100.0f, -30 + 100.0f));
 		s->SetBoundingRadius(100.0f);
 		s->SetMesh(quad);
 		root->AddChild(s);
 	}
-	for (int i = 0; i < 25; i++)
+
+	int robotArraySize = 10;
+
+	for (int i = 0; i < robotArraySize; i++)
 	{
-		for (int x = 0; x < 25; x++)
+		for (int x = 0; x < robotArraySize; x++)
 		{
 			root->AddChild(new CubeRobot());
-			auto robot = root->GetChildIteratorStart() + 5 + x + (25 * i);
+			auto robot = root->GetChildIteratorStart() + 5 + x + (robotArraySize * i);
 			(*robot)->SetTransform(Matrix4::Translation(Vector3(40 * x, 0, 40 * i)));
 		}
 	}
