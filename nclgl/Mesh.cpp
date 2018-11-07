@@ -141,6 +141,7 @@ void Mesh::BufferData() {
 }
 
 void Mesh::Draw() {
+	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(arrayObject);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	if (bufferObject[INDEX_BUFFER]) {
