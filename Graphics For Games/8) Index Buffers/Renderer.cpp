@@ -5,6 +5,8 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	camera = new Camera();
 	camera->SetPosition(Vector3(0, 100, 750.0f));
 
+	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
+
 	currentShader = new Shader(SHADERDIR "SceneVertex.glsl",
 		SHADERDIR "SceneFragment.glsl");
 
@@ -17,19 +19,28 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	quad = Mesh::GenerateQuad();
 	quad->SetTexture(SOIL_load_OGL_texture(
-		TEXTUREDIR "stainedglass.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
+		TEXTUREDIR"stainedglass.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
 
 	root = new SceneNode();
 	for (int i = 0; i < 5; ++i) {
 		SceneNode * s = new SceneNode();
 		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.5f));
 		s->SetTransform(Matrix4::Translation(
-		Vector3(200, 100.0f, 100 * i)));
+			Vector3(200, 100.0f, 100 * i)));
 		s->SetModelScale(Vector3(100.0f, 100.0f, -30 + 100.0f));
 		s->SetBoundingRadius(100.0f);
 		s->SetMesh(quad);
 		root->AddChild(s);
 	}
+
+	heightMap->SetTexture(SOIL_load_OGL_texture(
+		TEXTUREDIR"Barren Reds.JPG",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	if (!heightMap->GetTexture()) {
+		return;
+	}
+	SetTextureRepeating(heightMap->GetTexture(), true);
 
 	int robotArraySize = 10;
 
@@ -45,6 +56,8 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	init = true;
@@ -54,6 +67,7 @@ Renderer ::~Renderer(void) {
 	delete root;
 	delete quad;
 	delete camera;
+	delete heightMap;
 	CubeRobot::DeleteCube(); // Also important !
 }
 
@@ -75,6 +89,11 @@ void Renderer::RenderScene() {
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"diffuseTex"), 0);
+
+	glUniform4fv(glGetUniformLocation(currentShader->GetProgram(),
+		"nodeColour"), 1, (float*)&Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+
+	heightMap->Draw();
 
 	DrawNodes();
 
@@ -115,9 +134,11 @@ void Renderer::DrawNodes() {
 	for (vector<SceneNode*>::const_iterator i = nodeList.begin(); i != nodeList.end(); ++i) {
 		DrawNode((*i));
 	}
+	glDisable(GL_CULL_FACE);
 	for (vector<SceneNode*>::const_reverse_iterator i = transparentNodeList.rbegin(); i != transparentNodeList.rend(); ++i) {
 		DrawNode((*i));
 	}
+	glEnable(GL_CULL_FACE);
 }
 
 void Renderer::DrawNode(SceneNode* n) {
