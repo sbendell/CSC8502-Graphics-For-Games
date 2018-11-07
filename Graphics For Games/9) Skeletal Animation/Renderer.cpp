@@ -1,10 +1,10 @@
 #include "Renderer.h"
 
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{	
-	camera			= new Camera(0,-90.0f,Vector3(-180,60,0));
+	camera			= new Camera(0, -90.0f, 0, Vector3(-180,60,0), 1);
 
 #ifdef MD5_USE_HARDWARE_SKINNING
-	currentShader   = new Shader("skeletonvertex.glsl", SHADERDIR"TexturedFragment.glsl");
+	currentShader   = new Shader("skeletonVertex.glsl", SHADERDIR"TexturedFragment.glsl");
 #else
 	currentShader   = new Shader(SHADERDIR"TexturedVertex.glsl", SHADERDIR"TexturedFragment.glsl");
 #endif
@@ -40,6 +40,7 @@ Renderer::~Renderer(void)	{
 	viewMatrix		= camera->BuildViewMatrix();
 
 	hellNode->Update(msec);
+	cout << "FPS: " << 1000.0f / msec << endl;
 }
 
 void Renderer::RenderScene()	{
