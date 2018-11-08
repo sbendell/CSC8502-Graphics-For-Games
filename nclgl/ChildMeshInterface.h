@@ -36,7 +36,13 @@ public:
 			delete children.at(i);
 		}
 	}
+	std::vector<Mesh*>::const_iterator GetChildMeshIteratorStart() {
+		return children.begin();
+	}
 
+	std::vector<Mesh*>::const_iterator GetChildMeshIteratorEnd() {
+		return children.end();
+	}
 protected:
 	//Some Meshes have children...
 	std::vector<Mesh*>children;

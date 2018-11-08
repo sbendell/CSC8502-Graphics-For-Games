@@ -50,13 +50,29 @@ void Renderer::RenderScene()	{
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
 
 	UpdateShaderMatrices();
+	unsigned int index = 0;
+	for (vector<Mesh*>::const_iterator i = ((MD5Mesh*)hellNode->GetMesh())->GetChildMeshIteratorStart();
+		i != ((MD5Mesh*)hellNode->GetMesh())->GetChildMeshIteratorEnd(); ++i) {
+		glActiveTexture(GL_TEXTURE0 + index);
+		glBindTexture(GL_TEXTURE_2D, (*i)->GetTexture());
+		index++;
+	}
+	glBindTexture(GL_TEXTURE_2D, hellNode->GetMesh()->GetTexture());
 
-	for(int y = 0; y < 10; ++y) {
-		for(int x = 0; x < 10; ++x) {
-			modelMatrix = Matrix4::Translation(Vector3(x * 100, 0, y * 100));
-			UpdateShaderMatrices();	
-			hellNode->Draw(*this);
+	for(int y = 0; y < 5; ++y) {
+		for(int z = 0; z < 5; ++z) {
+			for (int x = 0; x < 5; ++x) {
+				modelMatrix = Matrix4::Translation(Vector3(x * 100, y * 150, z * 100));
+				UpdateShaderMatrices();
+				hellNode->Draw(*this);
+			}
 		}
+	}
+
+	for (int i = 0; i < index; i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	glUseProgram(0);
