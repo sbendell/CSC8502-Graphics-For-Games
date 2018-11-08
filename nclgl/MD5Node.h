@@ -65,6 +65,9 @@ public:
 	bool	GetJointWorldTransform(const string&name, Matrix4 &t);
 	bool	SetJointWorldTransform(const string &name, Matrix4 &t);
 
+	bool GetRootMotion() const { return rootMotion; }
+	void SetRootMotion(bool val) { rootMotion = val; }
+
 	MD5Skeleton* GetSkeleton() {
 		return &currentSkeleton;
 	}
@@ -100,6 +103,7 @@ protected:
 
 	float				frameTime;
 	unsigned int		currentAnimFrame;	//Current frame of animation
+	bool rootMotion;
 };
 #endif
 #endif

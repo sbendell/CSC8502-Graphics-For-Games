@@ -17,8 +17,9 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 		return;
 	}
 
-	hellData->AddAnim(MESHDIR"idle2.md5anim");
-	hellNode->PlayAnim(MESHDIR"idle2.md5anim");
+	hellData->AddAnim(MESHDIR"walk7.md5anim");
+	hellNode->PlayAnim(MESHDIR"walk7.md5anim");
+	hellNode->SetRootMotion(true);
 
 	projMatrix = Matrix4::Perspective(1.0f,10000.0f,(float)width / (float)height, 45.0f);
 
@@ -63,6 +64,7 @@ void Renderer::RenderScene()	{
 		for(int z = 0; z < 5; ++z) {
 			for (int x = 0; x < 5; ++x) {
 				modelMatrix = Matrix4::Translation(Vector3(x * 100, y * 150, z * 100));
+				modelMatrix.SetPositionVector(modelMatrix.GetPositionVector() + hellNode->GetTransform().GetPositionVector());
 				UpdateShaderMatrices();
 				hellNode->Draw(*this);
 			}

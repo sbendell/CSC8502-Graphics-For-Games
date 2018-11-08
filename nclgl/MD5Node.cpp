@@ -37,6 +37,12 @@ void	MD5Node::Update(float msec) {
 		}
 		//Transform this particular node's skeleton to the right frame of
 		//anim
+		if (rootMotion) {
+			if (currentAnimFrame == 1)
+			{
+				transform = transform + currentSkeleton.joints[0].transform;
+			}
+		}
 		currentAnim->TransformSkeleton(currentSkeleton,currentAnimFrame-1);
 	}
 	//Call our base class update function, too! Doing so will presever the 
