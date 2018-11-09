@@ -141,9 +141,9 @@ void Mesh::BufferData() {
 }
 
 void Mesh::Draw() {
-	//glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(arrayObject);
-	//glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	if (bufferObject[INDEX_BUFFER]) {
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
 	}
@@ -151,5 +151,5 @@ void Mesh::Draw() {
 		glDrawArrays(type, 0, numVertices);
 	}
 	glBindVertexArray(0);
-	//glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

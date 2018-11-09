@@ -2,8 +2,8 @@
 
 #include "../../nclgl/OGLRenderer.h"
 #include "../../nclgl/Camera.h"
-#include "../../nclgl/MD5Mesh.h"
-#include "../../nclgl/MD5Node.h"
+#include "../../nclgl/HeightMap.h"
+#define POST_PASSES 10
 
 class Renderer : public OGLRenderer		{
 public:
@@ -14,8 +14,20 @@ public:
 	virtual void UpdateScene(float msec);
 
 protected:
-	MD5FileData* hellData;
-	MD5Node*	hellNode;
+	void PresentScene();
+	void DrawPostProcess();
+	void DrawScene();
+	
+	Shader* sceneShader;
+	Shader* processShader;
+
+	Mesh* quad;
+	HeightMap* heightMap;
+	
+	GLuint bufferFBO;
+	GLuint processFBO;
+	GLuint bufferColourTex[2];
+	GLuint bufferDepthTex;
 	Camera*		camera;
 };
 
