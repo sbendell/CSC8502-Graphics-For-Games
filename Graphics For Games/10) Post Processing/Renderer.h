@@ -18,6 +18,7 @@ protected:
 	void DrawPostProcess();
 	void DrawScene();
 	
+	Shader* worldShader;
 	Shader* sceneShader;
 	Shader* processShader;
 
