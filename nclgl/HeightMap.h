@@ -19,4 +19,15 @@ class HeightMap : public Mesh {
 public:
 	HeightMap(std::string name);
 	~HeightMap(void) {};
+
+	virtual void Draw();
+
+	GLuint GetCraterTex() { return craterTex; }
+	void SetCraterTex(GLuint t) { craterTex = t; }
+
+	void SmashTerrain(int xPos, int yPos);
+
+protected:
+	GLuint craterTex;
+	float* pixels;
 };

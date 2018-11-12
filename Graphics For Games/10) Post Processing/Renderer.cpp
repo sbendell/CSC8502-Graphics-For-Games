@@ -1,82 +1,170 @@
 #include "Renderer.h"
+#include <random>
+#include <time.h>
 
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{	
-	camera			= new Camera(0, -90.0f, 0, Vector3(-180,60,0), 1);
+	camera = new Camera(0.0f, -135.0f, 0.0f, Vector3(0, 500, 0), 1.0f);
+	quad = Mesh::GenerateQuad();
+	
+	heightMap = new HeightMap(TEXTUREDIR "terrain.raw");
+	heightMap->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "Barren Reds.JPG",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-#ifdef MD5_USE_HARDWARE_SKINNING
-	currentShader   = new Shader("skeletonVertexSimple.glsl", SHADERDIR"TexturedFragment.glsl");
-#else
-	currentShader   = new Shader(SHADERDIR"TexturedVertex.glsl", SHADERDIR"TexturedFragment.glsl");
-#endif
+	worldShader = new Shader(SHADERDIR "TexturedVertex2.glsl",
+		SHADERDIR "TexturedFragment.glsl");
+	sceneShader = new Shader(SHADERDIR "TexturedVertex.glsl",
+		SHADERDIR "TexturedFragment.glsl");
+	processShader = new Shader(SHADERDIR "TexturedVertex.glsl",
+		SHADERDIR "processfrag.glsl");
 
-	hellData		= new MD5FileData(MESHDIR"hellknight.md5mesh");
-
-	hellNode		= new MD5Node(*hellData);
-
-	if(!currentShader->LinkProgram()) {
+	if (!worldShader->LinkProgram() || !processShader->LinkProgram() || !sceneShader->LinkProgram() ||
+		!heightMap->GetTexture()) {
 		return;
 	}
 
-	hellData->AddAnim(MESHDIR"walk7.md5anim");
-	hellNode->PlayAnim(MESHDIR"walk7.md5anim");
-	hellNode->SetRootMotion(true);
+	SetTextureRepeating(heightMap->GetTexture(), true);
+	SetTextureRepeating(heightMap->GetCraterTex(), true);
 
-	projMatrix = Matrix4::Perspective(1.0f,10000.0f,(float)width / (float)height, 45.0f);
+	glGenTextures(1, &bufferDepthTex);
+	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height,
+		0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 
+	for (int i = 0; i < 2; ++i) {
+		glGenTextures(1, &bufferColourTex[i]);
+		glBindTexture(GL_TEXTURE_2D, bufferColourTex[i]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	}
+
+	glGenFramebuffers(1, &bufferFBO); // We ’ll render the scene into this
+	glGenFramebuffers(1, &processFBO); // And do post processing in this
+
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_TEXTURE_2D, bufferDepthTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+		GL_TEXTURE_2D, bufferDepthTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, bufferColourTex[0], 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
+		GL_FRAMEBUFFER_COMPLETE || !bufferDepthTex || !bufferColourTex[0]) {
+		return;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 	init = true;
+	srand(time(NULL));
 }
 
 Renderer::~Renderer(void)	{
+	delete sceneShader;
+	delete processShader;
+	currentShader = NULL;
+	
+	delete heightMap;
+	delete quad;
 	delete camera;
 
-	delete hellData;
-	delete hellNode;
+	glDeleteTextures(2, bufferColourTex);
+	glDeleteTextures(1, &bufferDepthTex);
+	glDeleteFramebuffers(1, &bufferFBO);
+	glDeleteFramebuffers(1, &processFBO);
 }
 
  void Renderer::UpdateScene(float msec)	{
 	camera->UpdateCamera(msec); 
-	viewMatrix		= camera->BuildViewMatrix();
-
-	hellNode->Update(msec);
-	cout << "FPS: " << 1000.0f / msec << endl;
+	viewMatrix = camera->BuildViewMatrix();
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_UP)) {
+		int x = rand() % 216 + 20;
+		int y = rand() % 216 + 20;
+		heightMap->SmashTerrain(x, y);
+	}
 }
 
 void Renderer::RenderScene()	{
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-	glUseProgram(currentShader->GetProgram());
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
-
-	UpdateShaderMatrices();
-	unsigned int index = 0;
-	for (vector<Mesh*>::const_iterator i = ((MD5Mesh*)hellNode->GetMesh())->GetChildMeshIteratorStart();
-		i != ((MD5Mesh*)hellNode->GetMesh())->GetChildMeshIteratorEnd(); ++i) {
-		glActiveTexture(GL_TEXTURE0 + index);
-		glBindTexture(GL_TEXTURE_2D, (*i)->GetTexture());
-		index++;
-	}
-	glBindTexture(GL_TEXTURE_2D, hellNode->GetMesh()->GetTexture());
-
-	for(int y = 0; y < 5; ++y) {
-		for(int z = 0; z < 5; ++z) {
-			for (int x = 0; x < 5; ++x) {
-				modelMatrix = Matrix4::Translation(Vector3(x * 100, y * 150, z * 100));
-				modelMatrix.SetPositionVector(modelMatrix.GetPositionVector() + hellNode->GetTransform().GetPositionVector());
-				UpdateShaderMatrices();
-				hellNode->Draw(*this);
-			}
-		}
-	}
-
-	for (int i = 0; i < index; i++)
-	{
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	glUseProgram(0);
+	DrawScene();
+	//DrawPostProcess();
+	PresentScene();
 	SwapBuffers();
+}
+
+void Renderer::DrawScene() {
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT |
+		GL_STENCIL_BUFFER_BIT);
+	
+	SetCurrentShader(worldShader);
+	projMatrix = Matrix4::Perspective(1.0f, 10000.0f,
+		(float)width / (float)height, 45.0f);
+	UpdateShaderMatrices();
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"diffuseTex"), 0);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"craterTex"), 1);
+	heightMap->Draw();
+	
+	glUseProgram(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::DrawPostProcess() {
+	glBindFramebuffer(GL_FRAMEBUFFER, processFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, bufferColourTex[1], 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	
+	SetCurrentShader(processShader);
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+	viewMatrix.ToIdentity();
+	UpdateShaderMatrices();
+
+	glDisable(GL_DEPTH_TEST);
+
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(),
+		"pixelSize"), 1.0f / width, 1.0f / height);
+	for (int i = 0; i < POST_PASSES; ++i) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, bufferColourTex[1], 0);
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"isVertical"), 0);
+
+		quad->SetTexture(bufferColourTex[0]);
+		quad->Draw();
+		// Now to swap the colour buffers , and do the second blur pass
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"isVertical"), 1);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, bufferColourTex[0], 0);
+
+		quad->SetTexture(bufferColourTex[1]);
+		quad->Draw();
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glUseProgram(0);
+	
+	glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::PresentScene() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	SetCurrentShader(sceneShader);
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+	viewMatrix.ToIdentity();
+	UpdateShaderMatrices();
+	quad->SetTexture(bufferColourTex[0]);
+	quad->Draw();
+	glUseProgram(0);
 }
