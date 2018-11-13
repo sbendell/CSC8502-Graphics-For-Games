@@ -60,6 +60,7 @@ HeightMap::HeightMap(std::string name) {
 	}
 	GenerateCraterTexture();
 	GenerateNormals();
+	GenerateTangents();
 	BufferData();
 }
 
@@ -107,6 +108,9 @@ void HeightMap::Draw() {
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, craterTex);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, bumpTexture);
 
 	if (bufferObject[INDEX_BUFFER]) {
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
