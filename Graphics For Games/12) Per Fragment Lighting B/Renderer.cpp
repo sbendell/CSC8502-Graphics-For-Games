@@ -9,25 +9,29 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	heightMap = new HeightMap(TEXTUREDIR "terrain.raw");
 	heightMap->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "Barren Reds.JPG",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	heightMap->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR "Barren RedsDOT3.JPG",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	worldShader = new Shader(SHADERDIR "PerPixelVertex.glsl",
-		SHADERDIR "PerPixelFragment.glsl");
+	worldShader = new Shader(SHADERDIR "BumpVertex.glsl",
+		SHADERDIR "BumpFragment.glsl");
 	sceneShader = new Shader(SHADERDIR "TexturedVertex.glsl",
 		SHADERDIR "TexturedFragment.glsl");
 	processShader = new Shader(SHADERDIR "TexturedVertex.glsl",
 		SHADERDIR "processfrag.glsl");
 
 	if (!worldShader->LinkProgram() || !processShader->LinkProgram() || !sceneShader->LinkProgram() ||
-		!heightMap->GetTexture()) {
+		!heightMap->GetTexture() || !heightMap->GetBumpMap()) {
 		return;
 	}
 
 	SetTextureRepeating(heightMap->GetTexture(), true);
+	SetTextureRepeating(heightMap->GetBumpMap(), true);
 	SetTextureRepeating(heightMap->GetCraterTex(), true);
 
 	light = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f),
 		500.0f, (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)),
-		Vector4(1, 1, 1, 1), (RAW_WIDTH * HEIGHTMAP_X) / 2.0f);
+		Vector4(1, 1, 1, 1), (RAW_WIDTH * HEIGHTMAP_X) / 2.0f);
+
 
 	glGenTextures(1, &bufferDepthTex);
 	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
@@ -121,6 +125,8 @@ void Renderer::DrawScene() {
 		"diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"craterTex"), 1);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"bumpTex"), 2);
 	heightMap->Draw();
 	
 	glUseProgram(0);
