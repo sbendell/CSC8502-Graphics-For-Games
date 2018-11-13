@@ -58,6 +58,12 @@ HeightMap::HeightMap(std::string name) {
 			pixels[4 * (i * 256 + j) + 3] = 1.0f;
 		}
 	}
+	GenerateCraterTexture();
+	GenerateNormals();
+	BufferData();
+}
+
+void HeightMap::GenerateCraterTexture() {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, craterTex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_FLOAT, pixels);
@@ -66,7 +72,6 @@ HeightMap::HeightMap(std::string name) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	BufferData();
 }
 
 void HeightMap::SmashTerrain(int xPos, int yPos) {

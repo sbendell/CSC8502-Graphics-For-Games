@@ -28,6 +28,8 @@ public:
 	void SmashTerrain(int xPos, int yPos);
 
 protected:
+	void GenerateCraterTexture();
+
 	GLuint craterTex;
 	float* pixels;
 };
