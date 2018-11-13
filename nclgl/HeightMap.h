@@ -18,7 +18,7 @@
 class HeightMap : public Mesh {
 public:
 	HeightMap(std::string name);
-	~HeightMap(void) {};
+	~HeightMap(void) { glDeleteTextures(1, &craterTex); };
 
 	virtual void Draw();
 
@@ -28,6 +28,8 @@ public:
 	void SmashTerrain(int xPos, int yPos);
 
 protected:
+	void GenerateCraterTexture();
+
 	GLuint craterTex;
 	float* pixels;
 };
