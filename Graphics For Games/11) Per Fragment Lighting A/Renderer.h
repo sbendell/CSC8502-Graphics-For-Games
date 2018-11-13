@@ -28,7 +28,9 @@ protected:
 	GLuint bufferFBO;
 	GLuint processFBO;
 	GLuint bufferColourTex[2];
-	GLuint bufferDepthTex;
+	GLuint bufferDepthTex;
+
 	Camera*		camera;
+	Light* light;
 };
 

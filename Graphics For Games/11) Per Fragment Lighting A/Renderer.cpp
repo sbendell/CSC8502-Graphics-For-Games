@@ -10,8 +10,8 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	heightMap->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "Barren Reds.JPG",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	worldShader = new Shader(SHADERDIR "TexturedVertex2.glsl",
-		SHADERDIR "TexturedFragment.glsl");
+	worldShader = new Shader(SHADERDIR "PerPixelVertex.glsl",
+		SHADERDIR "PerPixelFragment.glsl");
 	sceneShader = new Shader(SHADERDIR "TexturedVertex.glsl",
 		SHADERDIR "TexturedFragment.glsl");
 	processShader = new Shader(SHADERDIR "TexturedVertex.glsl",
@@ -24,6 +24,10 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 
 	SetTextureRepeating(heightMap->GetTexture(), true);
 	SetTextureRepeating(heightMap->GetCraterTex(), true);
+
+	light = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f),
+		500.0f, (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)),
+		Vector4(1, 1, 1, 1), (RAW_WIDTH * HEIGHTMAP_X) / 2.0f);
 
 	glGenTextures(1, &bufferDepthTex);
 	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
@@ -76,6 +80,7 @@ Renderer::~Renderer(void)	{
 	delete heightMap;
 	delete quad;
 	delete camera;
+	delete light;
 
 	glDeleteTextures(2, bufferColourTex);
 	glDeleteTextures(1, &bufferDepthTex);
@@ -108,7 +113,10 @@ void Renderer::DrawScene() {
 	SetCurrentShader(worldShader);
 	projMatrix = Matrix4::Perspective(1.0f, 10000.0f,
 		(float)width / (float)height, 45.0f);
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+		"cameraPos"), 1, (float *)& camera->GetPosition());
 	UpdateShaderMatrices();
+	SetShaderLight(*light);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
