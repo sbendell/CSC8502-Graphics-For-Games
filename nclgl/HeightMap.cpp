@@ -80,9 +80,9 @@ void HeightMap::SmashTerrain(int xPos, int yPos) {
 			float temp = sqrt(pow(i, 2) + pow(j, 2));
 			int index = 4 * ((xPos + i) * 256 + (yPos + j)) + 0;
 			if (temp < 20) {
-				pixels[index + 0] = pixels[index + 0] * (1.0f - cos((temp / 20.0f) / 0.7f));
-				pixels[index + 1] = pixels[index + 1] * (1.0f - cos((temp / 20.0f) / 0.7f));
-				pixels[index + 2] = pixels[index + 2] * (1.0f - cos((temp / 20.0f) / 0.7f));
+				pixels[index + 0] = pixels[index + 0] * (1.0f - cos((temp / 20.0f) * (PI / 2.0f)));
+				pixels[index + 1] = pixels[index + 1] * (1.0f - cos((temp / 20.0f) * (PI / 2.0f)));
+				pixels[index + 2] = pixels[index + 2] * (1.0f - cos((temp / 20.0f) * (PI / 2.0f)));
 				pixels[index + 3] = 1.0f;
 			}
 		}
