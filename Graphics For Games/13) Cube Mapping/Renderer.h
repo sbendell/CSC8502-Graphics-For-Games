@@ -3,34 +3,30 @@
 #include "../../nclgl/OGLRenderer.h"
 #include "../../nclgl/Camera.h"
 #include "../../nclgl/HeightMap.h"
-#define POST_PASSES 10
 
-class Renderer : public OGLRenderer		{
+class Renderer : public OGLRenderer {
 public:
-	Renderer(Window &parent);
+	Renderer(Window & parent);
 	virtual ~Renderer(void);
 
 	virtual void RenderScene();
 	virtual void UpdateScene(float msec);
 
 protected:
-	void PresentScene();
-	void DrawPostProcess();
-	void DrawScene();
-	
-	Shader* worldShader;
-	Shader* sceneShader;
-	Shader* processShader;
+	void DrawHeightmap();
+	void DrawWater();
+	void DrawSkybox();
 
-	Mesh* quad;
-	HeightMap* heightMap;
-	
-	GLuint bufferFBO;
-	GLuint processFBO;
-	GLuint bufferColourTex[2];
-	GLuint bufferDepthTex;
+	Shader * lightShader;
+	Shader * reflectShader;
+	Shader * skyboxShader;
 
-	Camera*		camera;
-	Light* light;
-};
+	HeightMap * heightMap;
+	Mesh * quad;
 
+	Light * light;
+	Camera * camera;
+
+	GLuint cubeMap;
+
+	float waterRotate;};
