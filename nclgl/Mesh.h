@@ -23,7 +23,8 @@ public:
 	GLuint GetTexture() { return texture; }
 
 	void SetBumpMap(GLuint tex) { bumpTexture = tex; }
-	GLuint GetBumpMap() { return bumpTexture; }
+	GLuint GetBumpMap() { return bumpTexture; }
+
 
 protected:
 	void BufferData();
@@ -46,7 +47,8 @@ protected:
 		const Vector2 & ta, const Vector2 & tb, const Vector2 & tc);
 	
 	Vector3* tangents;
-	GLuint bumpTexture;
+	GLuint bumpTexture;
+
 
 	GLuint numIndices;
 	unsigned int* indices;
