@@ -3,7 +3,7 @@
 
 enum MeshBuffer {
 	VERTEX_BUFFER, COLOUR_BUFFER,
-	TEXTURE_BUFFER, INDEX_BUFFER,
+	TEXTURE_BUFFER, NORMAL_BUFFER, INDEX_BUFFER,
 	MAX_BUFFER
 };
 
@@ -23,6 +23,7 @@ public:
 
 protected:
 	void BufferData();
+	void GenerateNormals();
 
 	GLuint arrayObject;
 	GLuint bufferObject[MAX_BUFFER];
@@ -31,6 +32,7 @@ protected:
 
 	Vector3* vertices;
 	Vector4* colours;
+	Vector3* normals;
 
 	GLuint texture;
 	Vector2* textureCoords;
