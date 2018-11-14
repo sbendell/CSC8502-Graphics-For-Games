@@ -23,7 +23,10 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	if (!reflectShader->LinkProgram() || !lightShader->LinkProgram() ||
 		!skyboxShader->LinkProgram()) {
-		return;	}	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "water.TGA",
+		return;
+	}
+
+	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "water.TGA",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
 	heightMap->SetTexture(SOIL_load_OGL_texture(
@@ -32,7 +35,9 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	heightMap->SetBumpMap(SOIL_load_OGL_texture(
 		TEXTUREDIR "Barren RedsDOT3.JPG", SOIL_LOAD_AUTO,
-		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));	cubeMap = SOIL_load_OGL_cubemap(
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	cubeMap = SOIL_load_OGL_cubemap(
 		TEXTUREDIR "rusted_west.jpg", TEXTUREDIR "rusted_east.jpg",
 		TEXTUREDIR "rusted_up.jpg", TEXTUREDIR "rusted_down.jpg",
 		TEXTUREDIR "rusted_south.jpg", TEXTUREDIR "rusted_north.jpg",
@@ -47,7 +52,9 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	SetTextureRepeating(quad->GetTexture(), true);
 	SetTextureRepeating(heightMap->GetTexture(), true);
-	SetTextureRepeating(heightMap->GetBumpMap(), true);	init = true;
+	SetTextureRepeating(heightMap->GetBumpMap(), true);
+
+	init = true;
 	waterRotate = 0.0f;
 
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
@@ -67,7 +74,10 @@ Renderer ::~Renderer(void) {
 	delete skyboxShader;
 	delete lightShader;
 	delete light;
-	currentShader = 0;}void Renderer::UpdateScene(float msec) {
+	currentShader = 0;
+}
+
+void Renderer::UpdateScene(float msec) {
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
 	waterRotate += msec / 1000.0f;
@@ -102,7 +112,10 @@ void Renderer::DrawSkybox() {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	glUseProgram(0);
-	glDepthMask(GL_TRUE);}void Renderer::DrawHeightmap() {
+	glDepthMask(GL_TRUE);
+}
+
+void Renderer::DrawHeightmap() {
 	SetCurrentShader(lightShader);
 	SetShaderLight(*light);
 	
@@ -120,7 +133,10 @@ void Renderer::DrawSkybox() {
 	
 	heightMap->Draw();
 	
-	glUseProgram(0);}void Renderer::DrawWater() {
+	glUseProgram(0);
+}
+
+void Renderer::DrawWater() {
 	SetCurrentShader(reflectShader);
 	SetShaderLight(*light);
 	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
@@ -147,8 +163,10 @@ void Renderer::DrawSkybox() {
 	Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f));
 
 	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) *
-	Matrix4::Rotation(waterRotate, Vector3(0.0f, 0.0f, 1.0f));	UpdateShaderMatrices();
+	Matrix4::Rotation(waterRotate, Vector3(0.0f, 0.0f, 1.0f));
+	UpdateShaderMatrices();
 	
 	quad->Draw();
 	
-	glUseProgram(0);}
+	glUseProgram(0);
+}
