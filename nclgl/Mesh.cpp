@@ -77,7 +77,8 @@ Mesh* Mesh::GenerateQuad() {
 
 	m->colours = new Vector4[m->numVertices];
 	m->normals = new Vector3[m->numVertices];
-	m->tangents = new Vector3[m->numVertices];
+	m->tangents = new Vector3[m->numVertices];
+
 	for (int i = 0; i < m->numVertices; i++)
 	{
 		m->colours[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -266,6 +267,10 @@ void Mesh::Draw() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(arrayObject);
 	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, bumpTexture);
+
 	if (bufferObject[INDEX_BUFFER]) {
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
 	}
