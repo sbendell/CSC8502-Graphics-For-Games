@@ -20,7 +20,8 @@ protected:
 	void DrawPointLights(); // Lighting Render Pass
 	void CombineBuffers(); // Combination Render Pass
 	// Make a new texture ...
-	void GenerateScreenTexture(GLuint & into, bool depth = false);	Shader * sceneShader; // Shader to fill our GBuffers
+	void GenerateScreenTexture(GLuint & into, bool depth = false);
+	Shader * sceneShader; // Shader to fill our GBuffers
 	Shader * pointlightShader; // Shader to calculate lighting
 	Shader * combineShader; // shader to stick it all together
 
@@ -39,4 +40,5 @@ protected:
 
 	GLuint pointLightFBO; // FBO for our lighting pass
 	GLuint lightEmissiveTex; // Store emissive lighting
-	GLuint lightSpecularTex; // Store specular lighting};
+	GLuint lightSpecularTex; // Store specular lighting
+};

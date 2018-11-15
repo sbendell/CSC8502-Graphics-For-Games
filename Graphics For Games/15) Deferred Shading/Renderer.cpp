@@ -1,143 +1,94 @@
 #include "Renderer.h"
 
 Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
-	camera = new Camera(-8.0f, 40.0f, 0.0f, Vector3(-200.0f, 50.0f, 250.0f), 1.0f);
-	light = new Light(Vector3(-450.0f, 200.0f, 280.0f),
-		Vector4(1, 1, 1, 1), 5500.0f);
+	rotation = 0.0f;
+	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_WIDTH * HEIGHTMAP_X), 1.0f);
 
-	hellData = new MD5FileData(MESHDIR "hellknight.md5mesh");
-	hellNode = new MD5Node(*hellData);
+	quad = Mesh::GenerateQuad();
+	// Need to make an empty constructor for the Light class ...
+	pointLights = new Light[LIGHTNUM * LIGHTNUM];
+	for (int x = 0; x < LIGHTNUM; ++x) {
+		for (int z = 0; z < LIGHTNUM; ++z) {
+			Light & l = pointLights[(x * LIGHTNUM) + z];
 
-	hellData->AddAnim(MESHDIR "idle2.md5anim");
-	hellNode->PlayAnim(MESHDIR "idle2.md5anim");
+			float xPos = (RAW_WIDTH * HEIGHTMAP_X / (LIGHTNUM - 1)) * x;
+			float zPos = (RAW_HEIGHT * HEIGHTMAP_Z / (LIGHTNUM - 1)) * z;
+			l.SetPosition(Vector3(xPos, 100.0f, zPos));
 
-	sceneShader = new Shader(SHADERDIR "shadowscenevert.glsl",
-		SHADERDIR "shadowscenefrag.glsl");
-	shadowShader = new Shader(SHADERDIR "shadowVert.glsl",
-		SHADERDIR "shadowFrag.glsl");
+			float r = 0.5f + (float)(rand() % 129) / 128.0f;
+			float g = 0.5f + (float)(rand() % 129) / 128.0f;
+			float b = 0.5f + (float)(rand() % 129) / 128.0f;
+			l.SetColour(Vector4(r, g, b, 1.0f));
 
-	if (!sceneShader->LinkProgram() || !shadowShader->LinkProgram()) {
-		return;	}	glGenTextures(1, &shadowTex);
-	glBindTexture(GL_TEXTURE_2D, shadowTex);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			float radius = (RAW_WIDTH * HEIGHTMAP_X / LIGHTNUM);
+			l.SetRadius(radius);
+		}	}	heightMap = new HeightMap(TEXTUREDIR "terrain.raw");
+	heightMap->SetTexture(SOIL_load_OGL_texture(
+		TEXTUREDIR "Barren Reds.JPG", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-		SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	heightMap->SetBumpMap(SOIL_load_OGL_texture(
+		TEXTUREDIR "Barren RedsDOT3.JPG", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
-		GL_COMPARE_R_TO_TEXTURE);
+	SetTextureRepeating(heightMap->GetTexture(), true);
+	SetTextureRepeating(heightMap->GetBumpMap(), true);
 
-	glBindTexture(GL_TEXTURE_2D, 0);	glGenFramebuffers(1, &shadowFBO);
+	sphere = new OBJMesh();
+	if (!sphere->LoadOBJMesh(MESHDIR "ico.obj")) {
+		return;
+	}	sceneShader = new Shader(SHADERDIR "BumpVertex.glsl",
+		SHADERDIR "bufferFragment.glsl");
+	if (!sceneShader->LinkProgram()) {
+		return;
+	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	combineShader = new Shader(SHADERDIR "combinevert.glsl",
+		SHADERDIR "combinefrag.glsl");
+	if (!combineShader->LinkProgram()) {
+		return;
+	}
+
+	pointlightShader = new Shader(SHADERDIR " pointlightvert . glsl ",
+		SHADERDIR " pointlightfrag . glsl ");
+	if (!pointlightShader->LinkProgram()) {
+		return;	}	glGenFramebuffers(1, &bufferFBO);
+	glGenFramebuffers(1, &pointLightFBO);
+
+	GLenum buffers[2];
+	buffers[0] = GL_COLOR_ATTACHMENT0;
+	buffers[1] = GL_COLOR_ATTACHMENT1;
+
+	// Generate our scene depth texture ...
+	GenerateScreenTexture(bufferDepthTex, true);
+	GenerateScreenTexture(bufferColourTex);
+	GenerateScreenTexture(bufferNormalTex);
+	GenerateScreenTexture(lightEmissiveTex);
+	GenerateScreenTexture(lightSpecularTex);	// And now attach them to our FBOs
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, bufferColourTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+		GL_TEXTURE_2D, bufferNormalTex, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-		GL_TEXTURE_2D, shadowTex, 0);
-	glDrawBuffer(GL_NONE);
+		GL_TEXTURE_2D, bufferDepthTex, 0);
+	glDrawBuffers(2, buffers);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		return;	}	glBindFramebuffer(GL_FRAMEBUFFER, pointLightFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, lightEmissiveTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+		GL_TEXTURE_2D, lightSpecularTex, 0);
+	glDrawBuffers(2, buffers);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		return;
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	floor = Mesh::GenerateQuad();
-	floor->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "brick.tga"
-		,SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	floor->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR "brickDOT3.tga"
-		,SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
 
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
-		(float)width / (float)height, 45.0f);
-
-	init = true;
-}
-
-Renderer ::~Renderer(void) {
-	glDeleteTextures(1, &shadowTex);
-	glDeleteFramebuffers(1, &shadowFBO);
-	delete camera;
-	delete light;
-	delete hellData;
-	delete hellNode;
-	delete floor;
-
-	delete sceneShader;
-	delete shadowShader;
-	currentShader = NULL;
-}
-
-void Renderer::UpdateScene(float msec) {
-	camera->UpdateCamera(msec);
-	hellNode->Update(msec);}void Renderer::RenderScene() {
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-	DrawShadowScene(); // First render pass ...
-	DrawCombinedScene(); // Second render pass ...
-	SwapBuffers();}void Renderer::DrawShadowScene() {
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-
-	SetCurrentShader(shadowShader);
-
-	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(0, 0, 0));
-	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
-	UpdateShaderMatrices();
-
-	DrawFloor();	DrawMesh();
-
-	glUseProgram(0);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glViewport(0, 0, width, height);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void Renderer::DrawCombinedScene() {
-	SetCurrentShader(sceneShader);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"diffuseTex"), 0);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"bumpTex"), 1);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"shadowTex"), 2);
-
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-		"cameraPos"), 1, (float *)& camera->GetPosition());
-
-	SetShaderLight(*light);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, shadowTex);
-
-	viewMatrix = camera->BuildViewMatrix();
-	UpdateShaderMatrices();
-
-	DrawFloor();
-	DrawMesh();
-
-	glUseProgram(0);}void Renderer::DrawMesh() {
-	modelMatrix.ToIdentity();
-
-	Matrix4 tempMatrix = textureMatrix * modelMatrix;
-
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"textureMatrix"), 1, false, *& tempMatrix.values);
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"modelMatrix"), 1, false, *& modelMatrix.values);
-
-	hellNode->Draw(*this);
-
-}
-
-void Renderer::DrawFloor() {
-	modelMatrix = Matrix4::Rotation(90, Vector3(1, 0, 0)) *
-		Matrix4::Scale(Vector3(450, 450, 1));
-	Matrix4 tempMatrix = textureMatrix * modelMatrix;
-
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram()
-		, "textureMatrix"), 1, false, *& tempMatrix.values);
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram()
-		, "modelMatrix"), 1, false, *& modelMatrix.values);
-
-	floor->Draw();
-}
+	init = true;}

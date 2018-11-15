@@ -10,6 +10,7 @@ public:
 		this->colour = colour;
 		this->radius = radius;
 	}
+	Light();
 	~Light(void) {};
 
 	Vector3 GetPosition() const { return position; }
@@ -24,4 +25,5 @@ public:
 protected:
 	Vector3 position;
 	Vector4 colour;
-	float radius;};
+	float radius;
+};
