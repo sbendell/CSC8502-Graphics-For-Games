@@ -167,10 +167,8 @@ void Renderer::RenderScene() {
 
 	glBlendFunc(GL_ONE, GL_ONE);
 
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"depthTex"), 3);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"normTex"), 4);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "depthTex"), 3);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "normTex"), 4);
 
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
@@ -178,11 +176,9 @@ void Renderer::RenderScene() {
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, bufferNormalTex);
 
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-		"cameraPos"), 1, (float *)& camera->GetPosition());
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float *)& camera->GetPosition());
 
-	glUniform2f(glGetUniformLocation(currentShader->GetProgram(),
-		"pixelSize"), 1.0f / width, 1.0f / height);	Vector3 translate = Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500,
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"), 1.0f / width, 1.0f / height);	Vector3 translate = Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500,
 		(RAW_HEIGHT * HEIGHTMAP_Z / 2.0f));
 
 	Matrix4 pushMatrix = Matrix4::Translation(translate);
@@ -221,4 +217,25 @@ void Renderer::RenderScene() {
 	glClearColor(0.2f, 0.2f, 0.2f, 1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glUseProgram(0);}void Renderer::CombineBuffers() {
+	SetCurrentShader(combineShader);
+
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+	UpdateShaderMatrices();
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 2);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "emissiveTex"), 3);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "specularTex"), 4);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, bufferColourTex);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, lightEmissiveTex);
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, lightSpecularTex);
+
+	quad->Draw();
+
 	glUseProgram(0);}
