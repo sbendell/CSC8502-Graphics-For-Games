@@ -17,7 +17,10 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		SHADERDIR "shadowFrag.glsl");
 
 	if (!sceneShader->LinkProgram() || !shadowShader->LinkProgram()) {
-		return;	}	glGenTextures(1, &shadowTex);
+		return;
+	}
+
+	glGenTextures(1, &shadowTex);
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -29,7 +32,9 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
 		GL_COMPARE_R_TO_TEXTURE);
 
-	glBindTexture(GL_TEXTURE_2D, 0);	glGenFramebuffers(1, &shadowFBO);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glGenFramebuffers(1, &shadowFBO);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
@@ -67,12 +72,18 @@ Renderer ::~Renderer(void) {
 
 void Renderer::UpdateScene(float msec) {
 	camera->UpdateCamera(msec);
-	hellNode->Update(msec);}void Renderer::RenderScene() {
+	hellNode->Update(msec);
+}
+
+void Renderer::RenderScene() {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	DrawShadowScene(); // First render pass ...
 	DrawCombinedScene(); // Second render pass ...
-	SwapBuffers();}void Renderer::DrawShadowScene() {
+	SwapBuffers();
+}
+
+void Renderer::DrawShadowScene() {
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
@@ -84,7 +95,8 @@ void Renderer::UpdateScene(float msec) {
 	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
 	UpdateShaderMatrices();
 
-	DrawFloor();	DrawMesh();
+	DrawFloor();
+	DrawMesh();
 
 	glUseProgram(0);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -115,7 +127,10 @@ void Renderer::DrawCombinedScene() {
 	DrawFloor();
 	DrawMesh();
 
-	glUseProgram(0);}void Renderer::DrawMesh() {
+	glUseProgram(0);
+}
+
+void Renderer::DrawMesh() {
 	modelMatrix.ToIdentity();
 
 	Matrix4 tempMatrix = textureMatrix * modelMatrix;
