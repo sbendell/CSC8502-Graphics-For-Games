@@ -91,4 +91,22 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 
-	init = true;}
+	init = true;}Renderer ::~Renderer(void) {
+	delete sceneShader;
+	delete combineShader;
+	delete pointlightShader;
+
+	delete heightMap;
+	delete camera;
+	delete sphere;
+	delete quad;
+	delete[] pointLights;	glDeleteTextures(1, &bufferColourTex);
+	glDeleteTextures(1, &bufferNormalTex);
+	glDeleteTextures(1, &bufferDepthTex);
+	glDeleteTextures(1, &lightEmissiveTex);
+	glDeleteTextures(1, &lightSpecularTex);
+
+	glDeleteFramebuffers(1, &bufferFBO);
+	glDeleteFramebuffers(1, &pointLightFBO);
+	currentShader = 0;
+}
