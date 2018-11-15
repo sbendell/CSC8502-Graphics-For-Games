@@ -36,8 +36,7 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	sphere = new OBJMesh();
 	if (!sphere->LoadOBJMesh(MESHDIR "ico.obj")) {
-		return;
-	}	sceneShader = new Shader(SHADERDIR "BumpVertex.glsl",
+		return;	}	sceneShader = new Shader(SHADERDIR "BumpVertex.glsl",
 		SHADERDIR "bufferFragment.glsl");
 	if (!sceneShader->LinkProgram()) {
 		return;
@@ -49,8 +48,8 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		return;
 	}
 
-	pointlightShader = new Shader(SHADERDIR " pointlightvert . glsl ",
-		SHADERDIR " pointlightfrag . glsl ");
+	pointlightShader = new Shader(SHADERDIR "pointlightvert.glsl",
+		SHADERDIR "pointlightfrag.glsl");
 	if (!pointlightShader->LinkProgram()) {
 		return;	}	glGenFramebuffers(1, &bufferFBO);
 	glGenFramebuffers(1, &pointLightFBO);
