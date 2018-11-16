@@ -5,6 +5,7 @@
 #include "../../nclgl/SceneNode.h"
 #include "../../nclgl/Frustum.h"
 #include "../../nclgl/HeightMap.h"
+#include "../../nclgl/Material.h"
 #include <algorithm>
 
 class Renderer : public OGLRenderer {
@@ -25,6 +26,10 @@ protected:
 	SceneNode* root;
 	Camera* camera;
 	HeightMap* heightMap;
+
+	vector<pair<string, Shader*>> loadedShaders;
+	vector<Material*> materials;
+	vector<pair<string, GLuint>> loadedTextures; // First = texture name  Second = texture GLuint
 
 	Frustum frameFrustum;
 

@@ -27,7 +27,8 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 
 	light = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f),
 		500.0f, (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)),
-		Vector4(1, 1, 1, 1), (RAW_WIDTH * HEIGHTMAP_X) / 2.0f);
+		Vector4(1, 1, 1, 1), (RAW_WIDTH * HEIGHTMAP_X) / 2.0f);
+
 
 	glGenTextures(1, &bufferDepthTex);
 	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);

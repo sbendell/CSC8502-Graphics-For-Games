@@ -1,5 +1,8 @@
 #pragma once
 #include "../../nclgl/OGLRenderer.h"
+#include "../../nclgl/Material.h"
+
+class Material;
 
 enum MeshBuffer {
 	VERTEX_BUFFER, COLOUR_BUFFER,
@@ -14,7 +17,7 @@ public:
 	Mesh(void);
 	~Mesh(void);
 
-	virtual void Draw();
+	virtual void Draw(Material& mat);
 	static Mesh* GenerateTriangle();
 	static Mesh* GenerateQuad();
 	static Mesh* GenerateCube();

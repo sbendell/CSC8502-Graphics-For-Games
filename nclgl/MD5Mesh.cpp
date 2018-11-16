@@ -24,7 +24,7 @@ MD5Mesh::~MD5Mesh(void)	{
 //all of the children of 'this' will be drawn
 //*/
 
-void MD5Mesh::Draw() {
+void MD5Mesh::Draw(Material& mat) {
 	//GL_BREAKPOINT;
 	if(numVertices == 0) {
 		//Assume that this mesh is actually our 'root' node
@@ -34,10 +34,10 @@ void MD5Mesh::Draw() {
 #endif
 
 		for(unsigned int i = 0; i < children.size(); ++i) {
-			children[i]->Draw();
+			children[i]->Draw(mat);
 		}
 	}
-	Mesh::Draw();
+	Mesh::Draw(mat);
 };
 
 /*

@@ -20,8 +20,6 @@ public:
 	HeightMap(std::string name);
 	~HeightMap(void) { glDeleteTextures(1, &craterTex); };
 
-	virtual void Draw();
-
 	GLuint GetCraterTex() { return craterTex; }
 	void SetCraterTex(GLuint t) { craterTex = t; }
 

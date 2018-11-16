@@ -1,14 +1,28 @@
 #include "Renderer.h"
 
 Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
-	camera = new Camera(-90.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH / 2, 10.0f, RAW_HEIGHT / 2), 1.0f);
+	loadedTextures.reserve(100);
+	loadedShaders.reserve(20);
+	materials.reserve(50);
+	camera = new Camera(0.0f, -135.0f, 0.0f, Vector3(0, 500, 0), 1.0f);
 
 	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
 
-	currentShader = new Shader(SHADERDIR "SceneVertex.glsl",
-		SHADERDIR "SceneFragment.glsl");
+	loadedTextures.push_back(make_pair("Barren Reds", SOIL_load_OGL_texture(
+		TEXTUREDIR"Barren Reds.JPG",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS)));
+	SetTextureRepeating(loadedTextures[0].second, true);
 
-	if (!currentShader->LinkProgram()) {
+	Shader* terrainShader = new Shader(SHADERDIR "TexturedVertex.glsl",
+		SHADERDIR "TexturedFragment.glsl");
+	loadedShaders.push_back(make_pair("Terrain Shader", terrainShader));
+
+	unsigned int* textures = new unsigned int[16];
+	textures[0] = (unsigned int)loadedTextures[0].second;
+	Material* material = new Material(terrainShader, textures, 1);
+	materials.push_back(material);
+
+	if (!terrainShader->LinkProgram()) {
 		return;
 	}
 
@@ -17,20 +31,18 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	root = new SceneNode();
 
-	heightMap->SetTexture(SOIL_load_OGL_texture(
-		TEXTUREDIR"Barren Reds.JPG",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-
-	if (!heightMap->GetTexture()) {
-		return;
+	for (int i = 0; i < loadedTextures.size(); i++)
+	{
+		if (!loadedTextures[i].second) {
+			return;
+		}
 	}
-	SetTextureRepeating(heightMap->GetTexture(), true);
 
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_BLEND);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	init = true;
 }
@@ -51,19 +63,12 @@ void Renderer::UpdateScene(float msec) {
 void Renderer::RenderScene() {
 	BuildNodeLists(root);
 	SortNodeLists();
-
+	SetCurrentShader(loadedShaders[0].second);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(currentShader->GetProgram());
 	UpdateShaderMatrices();
 
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"diffuseTex"), 0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, heightMap->GetTexture());
-
-	heightMap->Draw();
+	heightMap->Draw(*materials[0]);
 
 	DrawNodes();
 
@@ -119,12 +124,6 @@ void Renderer::DrawNode(SceneNode* n) {
 		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
 			"modelMatrix"), 1, false, (float*)&transform);
 
-		glUniform4fv(glGetUniformLocation(currentShader->GetProgram(),
-			"nodeColour"), 1, (float*)& n->GetColour());
-
-		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-			"useTexture"), (int)n->GetMesh()->GetTexture());
-
-		n->Draw(*this);
+		n->Draw(*this, *materials[0]);
 	}
 }

@@ -64,7 +64,7 @@ We want to reset all of the animation details
 	currentAnim			= sourceData.GetAnim(name);
 }
 
-void	MD5Node::Draw(const OGLRenderer &r) {
+void	MD5Node::Draw(const OGLRenderer &r, Material& mat) {
 	MD5Mesh*m = (MD5Mesh*)mesh;
 
 	/*
@@ -101,7 +101,7 @@ void	MD5Node::Draw(const OGLRenderer &r) {
 	m->SkinVertices(currentSkeleton);
 #endif
 	//Finally, we draw the mesh, just like the base class Draw function...
-	m->Draw();
+	m->Draw(mat);
 }
 
 

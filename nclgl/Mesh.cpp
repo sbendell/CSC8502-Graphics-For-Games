@@ -263,13 +263,9 @@ Vector3 Mesh::GenerateTangent(const Vector3 &a, const Vector3 &b,
 }
 
 
-void Mesh::Draw() {
-	glActiveTexture(GL_TEXTURE0);
+void Mesh::Draw(Material& material) {
 	glBindVertexArray(arrayObject);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, bumpTexture);
+	material.LoadParameters();
 
 	if (bufferObject[INDEX_BUFFER]) {
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
@@ -277,6 +273,6 @@ void Mesh::Draw() {
 	else {
 		glDrawArrays(type, 0, numVertices);
 	}
+	material.UnloadParamters();
 	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
