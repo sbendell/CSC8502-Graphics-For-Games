@@ -1,7 +1,8 @@
 #include "Material.h"
 
-Material::Material(Shader* Shader, unsigned int* Textures, int TextureNum) {
+Material::Material(Shader* Shader, Vector4 Colour, unsigned int* Textures, int TextureNum) {
 	shader = Shader;
+	colour = Colour;
 
 	for (int i = 0; i < TextureNum; i++)
 	{

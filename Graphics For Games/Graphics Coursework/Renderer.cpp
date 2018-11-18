@@ -19,7 +19,7 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	unsigned int* textures = new unsigned int[16];
 	textures[0] = (unsigned int)loadedTextures[0].second;
-	Material* material = new Material(terrainShader, textures, 1);
+	Material* material = new Material(terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), textures, 1);
 	materials.push_back(material);
 
 	if (!terrainShader->LinkProgram()) {
@@ -30,6 +30,11 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		(float)width / (float)height, 45.0f);
 
 	root = new SceneNode();
+
+	SceneNode* terrain = new SceneNode(heightMap);
+	terrain->SetMaterial(materials[0]);
+	terrain->SetBoundingRadius(1000.0f);
+	root->AddChild(terrain);
 
 	for (int i = 0; i < loadedTextures.size(); i++)
 	{
@@ -51,6 +56,9 @@ Renderer ::~Renderer(void) {
 	delete root;
 	delete camera;
 	delete heightMap;
+	for (int i = 0; i < loadedShaders.size(); i++) { delete loadedShaders[i].second; }
+	for (int i = 0; i < materials.size(); i++) { delete materials[i]; }
+	for (int i = 0; i < loadedTextures.size(); i++) { glDeleteTextures(1, &(loadedTextures[i].second)); }
 }
 
 void Renderer::UpdateScene(float msec) {
@@ -68,7 +76,7 @@ void Renderer::RenderScene() {
 
 	UpdateShaderMatrices();
 
-	heightMap->Draw(*materials[0]);
+	//heightMap->Draw(*materials[0]);
 
 	DrawNodes();
 
@@ -79,14 +87,16 @@ void Renderer::RenderScene() {
 
 void Renderer::BuildNodeLists(SceneNode * from) {
 	if (frameFrustum.InsideFrustum(*from)) {
-		Vector3 dir = from->GetWorldTransform().GetPositionVector() - camera->GetPosition();
+		Vector3 dir = from->GetTransform().GetWorldMatrix().GetPositionVector() - camera->GetPosition();
 		from->SetCameraDistance(Vector3::Dot(dir, dir));
 
-		if (from->GetColour().w < 1.0f) {
-			transparentNodeList.push_back(from);
-		}
-		else {
-			nodeList.push_back(from);
+		if (from->GetMaterial()) {
+			if (from->GetMaterial()->GetColour().w < 1.0f) {
+				transparentNodeList.push_back(from);
+			}
+			else {
+				nodeList.push_back(from);
+			}
 		}
 	}
 	for (vector<SceneNode*>::const_iterator i = from->GetChildIteratorStart();
@@ -118,12 +128,9 @@ void Renderer::DrawNodes() {
 
 void Renderer::DrawNode(SceneNode* n) {
 	if (n->GetMesh()) {
-		Matrix4 transform = n->GetWorldTransform() *
-			Matrix4::Scale(n->GetModelScale());
-
 		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-			"modelMatrix"), 1, false, (float*)&transform);
+			"modelMatrix"), 1, false, (float*)&n->GetTransform().GetWorldMatrix());
 
-		n->Draw(*this, *materials[0]);
+		n->Draw(*this);
 	}
 }

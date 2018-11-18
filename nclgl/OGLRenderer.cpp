@@ -163,7 +163,7 @@ Destructor. Deletes the default shader, and the OpenGL rendering context.
 OGLRenderer::~OGLRenderer(void)	{
 	delete orthoDebugData;
 	delete perspectiveDebugData;
-	delete currentShader;
+	//delete currentShader;
 	delete debugDrawShader;
 	wglDeleteContext(renderContext);
 }

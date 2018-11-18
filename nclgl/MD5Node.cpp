@@ -40,7 +40,7 @@ void	MD5Node::Update(float msec) {
 		if (rootMotion) {
 			if (currentAnimFrame == 1)
 			{
-				transform = transform + currentSkeleton.joints[0].transform;
+				transform.SetLocalMatrix(transform.GetWorldMatrix() + currentSkeleton.joints[0].transform);
 			}
 		}
 		currentAnim->TransformSkeleton(currentSkeleton,currentAnimFrame-1);
