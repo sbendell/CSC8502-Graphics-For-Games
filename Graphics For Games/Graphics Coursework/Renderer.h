@@ -7,6 +7,7 @@
 #include "../../nclgl/HeightMap.h"
 #include "../../nclgl/Material.h"
 #include "../../nclgl/Scene.h"
+#include "../../nclgl/OBJmesh.h"
 #include <algorithm>
 
 class Scene;
@@ -62,12 +63,15 @@ public:
 		return material;
 	}
 
+	void GenerateScreenTexture(GLuint & into, bool depth = false);
+
 protected:
 	vector<pair<string, Shader*>> shaders;
 	vector<pair<string, Material*>> materials;
 	vector<pair<string, GLuint>> textures; // First = texture name  Second = texture GLuint
 
-	vector<Scene*> scenes;
+	Mesh* screenQuad;
+	OBJMesh* sphere;
 
-	bool mat = false;
+	vector<Scene*> scenes;
 };

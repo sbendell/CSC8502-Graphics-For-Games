@@ -9,16 +9,17 @@
 #include <algorithm>
 
 class Renderer;
+class OBJMesh;
 
 class Scene
 {
 public:
-	Scene(Renderer* rend, int width, int height);
+	Scene(Renderer* rend, int width, int height, OBJMesh* sphere);
 	Scene();
 	~Scene();
 
 	void UpdateScene(float msec);
-	void RenderScene();
+	void RenderScene(Mesh* screen);
 
 protected:
 	void BuildNodeLists(SceneNode* from);
@@ -26,6 +27,12 @@ protected:
 	void ClearNodeLists();
 	void DrawNodes();
 	void DrawNode(SceneNode* n);
+	
+	void FillBuffers(); //G- Buffer Fill Render Pass
+	void DrawPointLights(); // Lighting Render Pass
+	void CombineBuffers(Mesh* screen); // Combination Render Pass
+
+	void GenBuffers();
 
 	Renderer* renderer;
 
@@ -33,9 +40,23 @@ protected:
 	Camera* camera;
 	HeightMap* heightMap;
 
+	Light* lights;
+	Shader* pointLightShader;
+	OBJMesh* lightSphere;
+
+	Shader* combineShader;
+
 	Frustum frameFrustum;
 
 	vector<SceneNode*> transparentNodeList;
 	vector<SceneNode*> nodeList;
-};
 
+	GLuint bufferFBO; // FBO for our G- Buffer pass
+	GLuint bufferColourTex; // Albedo goes here
+	GLuint bufferNormalTex; // Normals go here
+	GLuint bufferDepthTex; // Depth goes here
+
+	GLuint pointLightFBO; // FBO for our lighting pass
+	GLuint lightEmissiveTex; // Store emissive lighting
+	GLuint lightSpecularTex; // Store specular lighting
+};

@@ -95,6 +95,9 @@ public:
 		BuildProjectionMatrix();
 	}
 
+	int GetWindowWidth() const { return windowWidth; }
+	int GetWindowHeight() const { return windowHeight; }
+
 protected:
 	//Builds a view matrix for the current camera variables, suitable for sending straight
 	//to a vertex shader (i.e it's already an 'inverse camera matrix').
