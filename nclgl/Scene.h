@@ -33,9 +33,6 @@ protected:
 	Camera* camera;
 	HeightMap* heightMap;
 
-	Matrix4 projMatrix;
-	Matrix4 viewMatrix;
-
 	Frustum frameFrustum;
 
 	vector<SceneNode*> transparentNodeList;

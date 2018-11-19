@@ -2,12 +2,9 @@
 
 Scene::Scene(Renderer* rend, int width, int height) {
 	renderer = rend;
-	camera = new Camera(0.0f, -135.0f, 0.0f, Vector3(0, 500, 0), 1.0f);
+	camera = new Camera(0.0f, -135.0f, 0.0f, Vector3(0, 500, 0), 1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
 	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
-
-	projMatrix = Matrix4::Perspective(1.0f, 10000.0f,
-		(float)width / (float)height, 45.0f);
 
 	root = new SceneNode();
 
@@ -29,8 +26,7 @@ Scene::~Scene()
 
 void Scene::UpdateScene(float msec) {
 	camera->UpdateCamera(msec);
-	viewMatrix = camera->BuildViewMatrix();
-	frameFrustum.FromMatrix(projMatrix*viewMatrix);
+	frameFrustum.FromMatrix(camera->GetProjectionMatrix()*camera->GetViewMatrix());
 	root->Update(msec);
 }
 
@@ -89,8 +85,8 @@ void Scene::DrawNode(SceneNode* n) {
 		GLuint shaderProgram = n->GetMaterial()->GetShader()->GetProgram();
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram,
 			"modelMatrix"), 1, false, (float*)&n->GetTransform().GetWorldMatrix());
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, false, (float*)&viewMatrix);
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projMatrix"), 1, false, (float*)&projMatrix);
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"), 1, false, (float*)&camera->GetViewMatrix());
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projMatrix"), 1, false, (float*)&camera->GetProjectionMatrix());
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "textureMatrix"), 1, false, (float*)&n->GetMaterial()->GetTextureMatrix());
 
 		n->Draw(*renderer);

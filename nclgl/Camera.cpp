@@ -10,6 +10,15 @@ void Camera::UpdateCamera(float msec)	{
 	pitch -= (Window::GetMouse()->GetRelativePosition().y);
 	yaw	  -= (Window::GetMouse()->GetRelativePosition().x);
 
+	if (Window::GetMouse()->ButtonDown(MOUSE_LEFT)) {
+		fov -= 0.5f;
+		BuildProjectionMatrix();
+	}
+	if (Window::GetMouse()->ButtonDown(MOUSE_RIGHT)) {
+		fov += 0.5f;
+		BuildProjectionMatrix();
+	}
+
 	//Bounds check the pitch, to be between straight up and straight down ;)
 	pitch = min(pitch,75.0f);
 	pitch = max(pitch,-75.0f);
@@ -37,10 +46,10 @@ void Camera::UpdateCamera(float msec)	{
 		position -= Matrix4::Rotation(yaw, Vector3(0,1,0)) * Vector3(-1,0,0) * msec;
 	}
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_Q)) {
-		roll += 1.0f;
+		roll -= 1.0f;
 	}
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_E)) {
-		roll -= 1.0f;
+		roll += 1.0f;
 	}
 
 	if(Window::GetKeyboard()->KeyDown(KEYBOARD_SHIFT)) {
@@ -52,17 +61,23 @@ void Camera::UpdateCamera(float msec)	{
 
 	roll = min(roll, 45.0f);
 	roll = max(roll, -45.0f);
+	BuildViewMatrix();
 }
 
 /*
 Generates a view matrix for the camera's viewpoint. This matrix can be sent
 straight to the shader...it's already an 'inverse camera' matrix.
 */
-Matrix4 Camera::BuildViewMatrix()	{
+void Camera::BuildViewMatrix()	{
 	//Why do a complicated matrix inversion, when we can just generate the matrix
 	//using the negative values ;). The matrix multiplication order is important!
-	return	Matrix4::Rotation(-pitch, Vector3(1, 0, 0)) *
+	viewMatrix =	Matrix4::Rotation(-pitch, Vector3(1, 0, 0)) *
 		Matrix4::Rotation(-yaw, Vector3(0, 1, 0)) *
 		Matrix4::Rotation(-roll, Vector3(0, 0, 1)) *
 		Matrix4::Translation(-position);
 };
+
+void Camera::BuildProjectionMatrix() {
+	projectionMatrix = Matrix4::Perspective(nearPlane, farPlane,
+		(float)windowWidth / (float)windowHeight, fov);
+}
