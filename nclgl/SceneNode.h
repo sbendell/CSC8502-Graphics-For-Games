@@ -15,7 +15,7 @@ public:
 	Mesh* GetMesh() const { return mesh; }
 	void SetMesh(Mesh* m) { mesh = m; }
 
-	Transform GetTransform() const { return transform; }
+	Transform& GetTransform() { return transform; }
 
 	Material* GetMaterial() const { return material; }
 	void SetMaterial(Material* mat) { material = mat; }

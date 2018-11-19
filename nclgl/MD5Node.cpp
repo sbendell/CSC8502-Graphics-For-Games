@@ -101,7 +101,7 @@ void	MD5Node::Draw(const OGLRenderer &r, Material& mat) {
 	m->SkinVertices(currentSkeleton);
 #endif
 	//Finally, we draw the mesh, just like the base class Draw function...
-	m->Draw(mat);
+	m->Draw();
 }
 
 

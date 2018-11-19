@@ -16,7 +16,6 @@ int main(char* c, int args[]) {
 	}
 
 	w.LockMouseToWindow(true);
-	wglSwapIntervalEXT(0);
 
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)) {
 		renderer.UpdateScene(w.GetTimer()->GetTimedMS());

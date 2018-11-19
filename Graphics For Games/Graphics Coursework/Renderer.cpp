@@ -1,26 +1,22 @@
 #include "Renderer.h"
 
 Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
-	loadedTextures.reserve(100);
-	loadedShaders.reserve(20);
+	textures.reserve(100);
+	shaders.reserve(20);
 	materials.reserve(50);
 	camera = new Camera(0.0f, -135.0f, 0.0f, Vector3(0, 500, 0), 1.0f);
 
 	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
 
-	loadedTextures.push_back(make_pair("Barren Reds", SOIL_load_OGL_texture(
-		TEXTUREDIR"Barren Reds.JPG",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS)));
-	SetTextureRepeating(loadedTextures[0].second, true);
+	unsigned int texture = LoadTexture("Barren Reds", "Barren Reds.JPG");
+	unsigned int normal = LoadTexture("Barren Reds Normal", "Barren RedsDOT3.JPG");
+	Shader* terrainShader = LoadShader("Terrain Shader", "TexturedVertex.glsl", "TexturedFragment.glsl");
 
-	Shader* terrainShader = new Shader(SHADERDIR "TexturedVertex.glsl",
-		SHADERDIR "TexturedFragment.glsl");
-	loadedShaders.push_back(make_pair("Terrain Shader", terrainShader));
+	Material* material = new Material(terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), &texture, 1);
+	materials.push_back(make_pair("Rocky Terrain", material));
 
-	unsigned int* textures = new unsigned int[16];
-	textures[0] = (unsigned int)loadedTextures[0].second;
-	Material* material = new Material(terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), textures, 1);
-	materials.push_back(material);
+	Material* normalMat = new Material(terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), &normal, 1);
+	materials.push_back(make_pair("Normal Terrain", normalMat));
 
 	if (!terrainShader->LinkProgram()) {
 		return;
@@ -32,13 +28,13 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	root = new SceneNode();
 
 	SceneNode* terrain = new SceneNode(heightMap);
-	terrain->SetMaterial(materials[0]);
-	terrain->SetBoundingRadius(1000.0f);
+	terrain->SetMaterial(materials[0].second);
+	terrain->SetBoundingRadius(100000.0f);
 	root->AddChild(terrain);
 
-	for (int i = 0; i < loadedTextures.size(); i++)
+	for (int i = 0; i < textures.size(); i++)
 	{
-		if (!loadedTextures[i].second) {
+		if (!textures[i].second) {
 			return;
 		}
 	}
@@ -56,9 +52,9 @@ Renderer ::~Renderer(void) {
 	delete root;
 	delete camera;
 	delete heightMap;
-	for (int i = 0; i < loadedShaders.size(); i++) { delete loadedShaders[i].second; }
-	for (int i = 0; i < materials.size(); i++) { delete materials[i]; }
-	for (int i = 0; i < loadedTextures.size(); i++) { glDeleteTextures(1, &(loadedTextures[i].second)); }
+	for (int i = 0; i < shaders.size(); i++) { delete shaders[i].second; }
+	for (int i = 0; i < materials.size(); i++) { delete materials[i].second; }
+	for (int i = 0; i < textures.size(); i++) { glDeleteTextures(1, &(textures[i].second)); }
 }
 
 void Renderer::UpdateScene(float msec) {
@@ -66,17 +62,19 @@ void Renderer::UpdateScene(float msec) {
 	viewMatrix = camera->BuildViewMatrix();
 	frameFrustum.FromMatrix(projMatrix*viewMatrix);
 	root->Update(msec);
+	auto hm = root->GetChildIteratorStart();
+	(*hm)->GetTransform().SetRotation((*hm)->GetTransform().GetRotation() + Vector3(10.0f, 0.0f, 0.0f));
+	(*hm)->SetMaterial(materials[mat].second);
+	mat = !mat;
 }
 
 void Renderer::RenderScene() {
 	BuildNodeLists(root);
 	SortNodeLists();
-	SetCurrentShader(loadedShaders[0].second);
+	SetCurrentShader(shaders[0].second);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	UpdateShaderMatrices();
-
-	//heightMap->Draw(*materials[0]);
 
 	DrawNodes();
 

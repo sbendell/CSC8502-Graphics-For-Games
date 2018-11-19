@@ -88,7 +88,7 @@ public:
 	//Draws the entire MD5Mesh, including its submeshes. Inherited from the 
 	//Mesh class, overloaded to support drawing of child meshes.
 	//*/
-	virtual void Draw(Material& mat);
+	virtual void Draw();
 
 	/*
 	To draw an MD5Mesh in a pose, it must go through the process of vertex

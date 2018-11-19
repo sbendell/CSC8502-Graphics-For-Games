@@ -17,7 +17,7 @@ public:
 	Mesh(void);
 	~Mesh(void);
 
-	virtual void Draw(Material& mat);
+	virtual void Draw();
 	static Mesh* GenerateTriangle();
 	static Mesh* GenerateQuad();
 	static Mesh* GenerateCube();
