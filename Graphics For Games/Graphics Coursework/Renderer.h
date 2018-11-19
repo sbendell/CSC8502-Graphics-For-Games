@@ -53,6 +53,12 @@ public:
 		return texInt;
 	}
 
+	inline Material* LoadMaterial(string MaterialName, Shader* Shader, Vector4 Colour, unsigned int* Textures, int NumTextures) {
+		Material* material = new Material(Shader, Colour, Textures, NumTextures);
+		materials.push_back(make_pair(MaterialName, material));
+		return material;
+	}
+
 protected:
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();

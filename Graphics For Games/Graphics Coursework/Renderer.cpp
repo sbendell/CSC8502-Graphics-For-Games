@@ -8,15 +8,11 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
 
-	unsigned int texture = LoadTexture("Barren Reds", "Barren Reds.JPG");
-	unsigned int normal = LoadTexture("Barren Reds Normal", "Barren RedsDOT3.JPG");
+	unsigned int* texes = new unsigned int[2] { LoadTexture("Barren Reds", "Barren Reds.JPG"),
+		LoadTexture("Barren Reds Normal", "Barren RedsDOT3.JPG") };
 	Shader* terrainShader = LoadShader("Terrain Shader", "TexturedVertex.glsl", "TexturedFragment.glsl");
-
-	Material* material = new Material(terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), &texture, 1);
-	materials.push_back(make_pair("Rocky Terrain", material));
-
-	Material* normalMat = new Material(terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), &normal, 1);
-	materials.push_back(make_pair("Normal Terrain", normalMat));
+	Material* terrainMaterial = LoadMaterial("Rocky Terrain", terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), &texes[0], 1);
+	Material* normalMat = LoadMaterial("Normal Terrain", terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), &texes[1], 1);
 
 	if (!terrainShader->LinkProgram()) {
 		return;
@@ -62,10 +58,6 @@ void Renderer::UpdateScene(float msec) {
 	viewMatrix = camera->BuildViewMatrix();
 	frameFrustum.FromMatrix(projMatrix*viewMatrix);
 	root->Update(msec);
-	auto hm = root->GetChildIteratorStart();
-	(*hm)->GetTransform().SetRotation((*hm)->GetTransform().GetRotation() + Vector3(10.0f, 0.0f, 0.0f));
-	(*hm)->SetMaterial(materials[mat].second);
-	mat = !mat;
 }
 
 void Renderer::RenderScene() {
