@@ -28,6 +28,7 @@
     <ClCompile Include="OGLRenderer.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Quaternion.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneNode.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -54,6 +55,7 @@
     <ClInclude Include="OGLRenderer.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Quaternion.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneNode.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Transform.h" />

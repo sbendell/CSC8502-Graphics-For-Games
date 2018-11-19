@@ -6,7 +6,10 @@
 #include "../../nclgl/Frustum.h"
 #include "../../nclgl/HeightMap.h"
 #include "../../nclgl/Material.h"
+#include "../../nclgl/Scene.h"
 #include <algorithm>
+
+class Scene;
 
 class Renderer : public OGLRenderer {
 public:
@@ -60,24 +63,11 @@ public:
 	}
 
 protected:
-	void BuildNodeLists(SceneNode* from);
-	void SortNodeLists();
-	void ClearNodeLists();
-	void DrawNodes();
-	void DrawNode(SceneNode* n);
-
-	SceneNode* root;
-	Camera* camera;
-	HeightMap* heightMap;
-
 	vector<pair<string, Shader*>> shaders;
 	vector<pair<string, Material*>> materials;
 	vector<pair<string, GLuint>> textures; // First = texture name  Second = texture GLuint
 
-	Frustum frameFrustum;
-
-	vector<SceneNode*> transparentNodeList;
-	vector<SceneNode*> nodeList;
+	vector<Scene*> scenes;
 
 	bool mat = false;
 };

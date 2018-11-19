@@ -4,6 +4,8 @@ Material::Material(Shader* Shader, Vector4 Colour, unsigned int* Textures, int T
 	shader = Shader;
 	colour = Colour;
 
+	textureMatrix.ToIdentity();
+
 	for (int i = 0; i < TextureNum; i++)
 	{
 		textures[i] = Textures[i];
