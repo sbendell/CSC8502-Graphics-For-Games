@@ -14,7 +14,13 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere) {
 	terrain->SetBoundingRadius(100000.0f);
 	root->AddChild(terrain);
 
-	lights = new Light[8 * 8];
+	float xPos = (RAW_WIDTH * HEIGHTMAP_X / 2);
+	float zPos = (RAW_HEIGHT * HEIGHTMAP_Z / 2);
+
+	lights = new Light(Vector3(xPos, 600.0f, zPos), Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+		4000.0f, 1.0f);
+
+	/*lights = new Light[8 * 8];
 	for (int x = 0; x < 8; ++x) {
 		for (int z = 0; z < 8; ++z) {
 			Light & l = lights[(x * 8) + z];
@@ -31,10 +37,11 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere) {
 			float radius = (RAW_WIDTH * HEIGHTMAP_X / 8);
 			l.SetRadius(radius);
 		}
-	}
+	}*/
 	GenBuffers();
 	pointLightShader = renderer->GetShaderWithName("Point Light");
 	combineShader = renderer->GetShaderWithName("Combine");
+	skyboxShader = renderer->GetShaderWithName("Skybox");
 	lightSphere = sphere;
 }
 
@@ -105,10 +112,10 @@ void Scene::UpdateScene(float msec) {
 	root->Update(msec);
 }
 
-void Scene::RenderScene(Mesh* screen) {
+void Scene::RenderScene(Mesh* screen, Mesh* fullScreen) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+	DrawSkybox(fullScreen);
 	FillBuffers();
 	DrawPointLights();
 	CombineBuffers(screen);
@@ -158,6 +165,7 @@ void Scene::DrawNodes() {
 void Scene::DrawNode(SceneNode* n) {
 	if (n->GetMesh()) {
 		GLuint shaderProgram = n->GetMaterial()->GetShader()->GetProgram();
+		glUseProgram(shaderProgram);
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram,
 			"modelMatrix"), 1, false, (float*)&n->GetTransform().GetWorldMatrix());
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"),
@@ -171,12 +179,53 @@ void Scene::DrawNode(SceneNode* n) {
 	}
 }
 
+void Scene::DrawSkybox(Mesh* screen) {
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	GLuint skyboxProgram = skyboxShader->GetProgram();
+	glUseProgram(skyboxProgram);
+
+	glUniform3fv(glGetUniformLocation(skyboxProgram,
+		"cameraPos"), 1, (float *)& camera->GetPosition());
+	glUniform1i(glGetUniformLocation(skyboxProgram,
+		"cubeTex"), 2);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
+
+	Matrix4 identity;
+	identity.ToIdentity();
+
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram,
+		"modelMatrix"), 1, false, (float*)&identity);
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram,
+		"viewMatrix"), 1, false, (float*)&camera->GetViewMatrix());
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram,
+		"projMatrix"), 1, false, (float*)&camera->GetProjectionMatrix());
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram,
+		"textureMatrix"), 1, false, (float*)&identity);
+	screen->Draw();
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	glUseProgram(0);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
+}
+
 void Scene::FillBuffers() {
 	BuildNodeLists(root);
 	SortNodeLists();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	DrawNodes();
 	ClearNodeLists();
@@ -214,9 +263,9 @@ void Scene::DrawPointLights() {
 	Matrix4 pushMatrix = Matrix4::Translation(translate);
 	Matrix4 popMatrix = Matrix4::Translation(-translate);
 
-	for (int x = 0; x < 8; ++x) {
-		for (int z = 0; z < 8; ++z) {
-			Light & l = lights[(x * 8) + z];
+	for (int x = 0; x < 1; ++x) {
+		for (int z = 0; z < 1; ++z) {
+			Light & l = lights[(x * 1) + z];
 			float radius = l.GetRadius();
 
 			Matrix4 tempModelMatrix =
@@ -234,6 +283,8 @@ void Scene::DrawPointLights() {
 				"lightColour"), 1, (float*)&l.GetColour());
 			glUniform1f(glGetUniformLocation(pointLightShader->GetProgram(),
 				"lightRadius"), l.GetRadius());
+			glUniform1f(glGetUniformLocation(pointLightShader->GetProgram(),
+				"lightBrightness"), l.GetBrightness());
 
 			Matrix4 identity;
 			identity.ToIdentity();
@@ -285,16 +336,24 @@ void Scene::CombineBuffers(Mesh* screen) {
 		"textureMatrix"), 1, false, (float*)&identity);
 
 	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "diffuseTex"), 2);
-	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "emissiveTex"), 3);
-	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "specularTex"), 4);
+	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "depthTex"), 3);
+	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "normTex"), 4);
+	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "emissiveTex"), 5);
+	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "specularTex"), 6);
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, bufferColourTex);
 
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, lightEmissiveTex);
+	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
 
 	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, bufferNormalTex);
+
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, lightEmissiveTex);
+
+	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, lightSpecularTex);
 
 	screen->Draw();

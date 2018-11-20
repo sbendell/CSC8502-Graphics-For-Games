@@ -23,9 +23,10 @@ void SceneNode::AddChild(SceneNode* s) {
 
 void SceneNode::Draw() {
 	if (mesh) {
+
 		material->LoadParameters();
 		mesh->Draw();
-		material->UnloadParamters();
+		material->UnloadParameters();
 	}
 }
 

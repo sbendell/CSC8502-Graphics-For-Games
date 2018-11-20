@@ -59,16 +59,34 @@ public:
 		return texInt;
 	}
 
-	inline Material* LoadMaterial(string MaterialName, Shader* Shader, Vector4 Colour, unsigned int* Textures, int NumTextures) {
+	inline unsigned int LoadCubeMap(string TextureName, string left, string right, string up, string down, string back, string front) {
+		unsigned int cubeMap = SOIL_load_OGL_cubemap(
+			(TEXTUREDIR + left).c_str(), (TEXTUREDIR + right).c_str(),
+			(TEXTUREDIR + up).c_str(), (TEXTUREDIR + down).c_str(),
+			(TEXTUREDIR + back).c_str(), (TEXTUREDIR + front).c_str(),
+			SOIL_LOAD_RGB,
+			SOIL_CREATE_NEW_ID, 0
+		);
+		cubeMaps.push_back(make_pair(TextureName, cubeMap));
+		return cubeMap;
+	}
+
+	inline Material* LoadMaterial(string MaterialName, Shader* Shader, Vector4 Colour,
+		unsigned int* Textures, int NumTextures, int type) {
+		switch (type) {
+		case TEXTURED:
+		{
 			Material* material = new Material(Shader, Colour, Textures, NumTextures);
 			materials.push_back(make_pair(MaterialName, material));
 			return material;
-	}
-
-	inline BumpMaterial* LoadBumpMaterial(string MaterialName, Shader* Shader, Vector4 Colour, unsigned int* Textures, int NumTextures) {
-		BumpMaterial* material = new BumpMaterial(Shader, Colour, Textures, NumTextures);
-		materials.push_back(make_pair(MaterialName, material));
-		return material;
+		}
+		case BUMP:
+		{
+			BumpMaterial* bumpMaterial = new BumpMaterial(Shader, Colour, Textures, NumTextures);
+			materials.push_back(make_pair(MaterialName, bumpMaterial));
+			return bumpMaterial;
+		}
+		}
 	}
 
 	void GenerateScreenTexture(GLuint & into, bool depth = false);
@@ -77,8 +95,10 @@ protected:
 	vector<pair<string, Shader*>> shaders;
 	vector<pair<string, Material*>> materials;
 	vector<pair<string, GLuint>> textures; // First = texture name  Second = texture GLuint
+	vector<pair<string, GLuint>> cubeMaps;
 
 	Mesh* screenQuad;
+	Mesh* fullScreenQuad;
 	OBJMesh* sphere;
 
 	vector<Scene*> scenes;

@@ -19,7 +19,10 @@ public:
 	~Scene();
 
 	void UpdateScene(float msec);
-	void RenderScene(Mesh* screen);
+	void RenderScene(Mesh* screen, Mesh* fullScreen);
+
+	GLuint GetSkybox() const { return skybox; }
+	void SetSkybox(GLuint val) { skybox = val; }
 
 protected:
 	void BuildNodeLists(SceneNode* from);
@@ -28,6 +31,7 @@ protected:
 	void DrawNodes();
 	void DrawNode(SceneNode* n);
 	
+	void DrawSkybox(Mesh* screen);
 	void FillBuffers(); //G- Buffer Fill Render Pass
 	void DrawPointLights(); // Lighting Render Pass
 	void CombineBuffers(Mesh* screen); // Combination Render Pass
@@ -39,6 +43,8 @@ protected:
 	SceneNode* root;
 	Camera* camera;
 	HeightMap* heightMap;
+	GLuint skybox;
+	Shader* skyboxShader;
 
 	Light* lights;
 	Shader* pointLightShader;

@@ -15,7 +15,7 @@ BumpMaterial::~BumpMaterial()
 {
 }
 
-void BumpMaterial::LoadParamaters() {
+void BumpMaterial::LoadParameters() {
 	glUseProgram(shader->GetProgram());
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
 		"diffuseTex"), 0);
@@ -28,7 +28,7 @@ void BumpMaterial::LoadParamaters() {
 	}
 }
 
-void BumpMaterial::UnloadParamaters() {
+void BumpMaterial::UnloadParameters() {
 	for (int i = 0; i < textureNum; i++)
 	{
 		glActiveTexture(GL_TEXTURE0 + i);

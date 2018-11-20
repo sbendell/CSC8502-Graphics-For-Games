@@ -9,7 +9,7 @@ public:
 	BumpMaterial();
 	~BumpMaterial();
 
-	virtual void LoadParamaters();
-	virtual void UnloadParamaters();
+	void LoadParameters() override;
+	void UnloadParameters() override;
 };
 

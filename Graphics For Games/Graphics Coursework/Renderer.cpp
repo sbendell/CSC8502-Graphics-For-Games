@@ -7,13 +7,17 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 
 	unsigned int* texes = new unsigned int[2] { LoadTexture("Barren Reds", "Barren Reds.JPG"),
 		LoadTexture("Barren Reds Normal", "Barren RedsDOT3.JPG") };
+	unsigned int cubeMap = LoadCubeMap("Rusted", "rusted_west.jpg", "rusted_east.jpg",
+		"rusted_up.jpg", "rusted_down.jpg",
+		"rusted_south.jpg", "rusted_north.jpg");
 
 	Shader* terrainShader = LoadShader("Terrain", "BumpVertex.glsl", "bufferFragment.glsl");
 	Shader* pointLightShader = LoadShader("Point Light", "pointlightvert.glsl", "pointlightfrag.glsl");
+	Shader* skyboxShader = LoadShader("Skybox", "skyboxVertex.glsl", "skyboxFragment2.glsl");
 	Shader* combineShader = LoadShader("Combine", "combinevert.glsl", "combinefrag.glsl");
 
-	BumpMaterial* terrainMaterial = LoadBumpMaterial("Rocky Terrain", terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
-		texes, 2);
+	Material* terrainMaterial = LoadMaterial("Rocky Terrain", terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+		texes, 2, BUMP);
 
 	for (int i = 0; i < shaders.size(); i++)
 	{
@@ -25,7 +29,13 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	projMatrix = Matrix4::Perspective(1.0f, 10000.0f,
 		(float)width / (float)height, 45.0f);
 
-	screenQuad = Mesh::GenerateQuad();
+	screenQuad = new Mesh[4];
+	screenQuad[0] = *Mesh::GenerateScreenQuad(-1.0f, -1.0f, 0.0f, 0.0f);
+	screenQuad[1] = *Mesh::GenerateScreenQuad(0.0f, -1.0f, 1.0f, 0.0f);
+	screenQuad[2] = *Mesh::GenerateScreenQuad(-1.0f, 0.0f, 0.0f, 1.0f);
+	screenQuad[3] = *Mesh::GenerateScreenQuad(0.0f, 0.0f, 1.0f, 1.0f);
+
+	fullScreenQuad = Mesh::GenerateQuad();
 
 	sphere = new OBJMesh();
 	if (!sphere->LoadOBJMesh(MESHDIR "ico.obj")) {
@@ -39,7 +49,15 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		}
 	}
 
+	for (int i = 0; i < cubeMaps.size(); i++)
+	{
+		if (!cubeMaps[i].second) {
+			return;
+		}
+	}
+
 	Scene* newScene = new Scene(this, width, height, sphere);
+	newScene->SetSkybox(cubeMap);
 	scenes.push_back(newScene);
 
 	glEnable(GL_DEPTH_TEST);
@@ -47,6 +65,7 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	init = true;
 }
@@ -59,7 +78,8 @@ Renderer ::~Renderer(void) {
 	for (int i = 0; i < textures.size(); i++) { glDeleteTextures(1, &(textures[i].second)); }
 
 	delete sphere;
-	delete screenQuad;
+	delete[] screenQuad;
+	delete fullScreenQuad;
 }
 
 void Renderer::GenerateScreenTexture(GLuint & into, bool depth) {
@@ -88,9 +108,9 @@ void Renderer::RenderScene() {
 	SetCurrentShader(shaders[0].second);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	for (int i = 0; i < scenes.size(); i++)
+	for (int i = 0; i < 1; i++)
 	{
-		scenes[i]->RenderScene(screenQuad);
+		scenes[0]->RenderScene(fullScreenQuad, fullScreenQuad);
 	}
 
 	glUseProgram(0);

@@ -7,6 +7,7 @@ uniform vec2 pixelSize;
 uniform vec3 cameraPos;
 
 uniform float lightRadius;
+uniform float lightBrightness;
 uniform vec3 lightPos;
 uniform vec4 lightColour;
 
@@ -37,6 +38,6 @@ void main (void) {
 	float rFactor = clamp(dot(halfDir , normal), 0.0, 1.0);
 	float sFactor = pow(rFactor, 33.0);
 
-	fragColour [0] = vec4(lightColour.xyz * lambert * atten, 1.0);
+	fragColour [0] = vec4(lightColour.xyz * lambert * atten, 1.0) * lightBrightness;
 	fragColour [1] = vec4(lightColour.xyz * sFactor * atten * 0.33, 1.0);
 }

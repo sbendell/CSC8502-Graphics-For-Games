@@ -23,7 +23,6 @@ Material::~Material()
 }
 
 void Material::LoadParameters() {
-	glUseProgram(shader->GetProgram());
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex"), 0);
 
 	for (int i = 0; i < textureNum; i++)
@@ -33,7 +32,7 @@ void Material::LoadParameters() {
 	}
 };
 
-void Material::UnloadParamters() {
+void Material::UnloadParameters() {
 	for (int i = 0; i < textureNum; i++)
 	{
 		glActiveTexture(GL_TEXTURE0 + i);

@@ -17,7 +17,7 @@ public:
 	void SetColour(Vector4 Colour) { colour = Colour; }
 
 	virtual void LoadParameters();
-	virtual void UnloadParamters();
+	virtual void UnloadParameters();
 
 	Shader* GetShader() const { return shader; }
 
