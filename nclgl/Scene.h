@@ -45,6 +45,7 @@ protected:
 	HeightMap* heightMap;
 	GLuint skybox;
 	Shader* skyboxShader;
+	Vector3 ambientColour;
 
 	Light* lights;
 	Shader* pointLightShader;

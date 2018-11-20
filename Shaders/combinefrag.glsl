@@ -6,6 +6,8 @@ uniform sampler2D normTex;
 uniform sampler2D emissiveTex;
 uniform sampler2D specularTex;
 
+uniform vec3 ambientColour;
+
 in Vertex {
 	vec2 texCoord;
 } IN;
@@ -19,10 +21,10 @@ void main (void) {
 	vec3 light = texture(emissiveTex, IN.texCoord).xyz;
 	vec3 specular = texture(specularTex, IN.texCoord).xyz;
 
-	float ambient = 0.2f;
+	vec3 ambient = ambientColour;
 	
 	if (normal.z == 0.0f) { //(normal.x == 1.0f && normal.y == 1.0f && normal.z == 1.0f){
-		ambient = 1.0f;
+		ambient = vec3(1.0f, 1.0f, 1.0f);
 	}
 	fragColour.xyz = diffuse * ambient; // ambient
 	fragColour.xyz += diffuse * light; // lambert

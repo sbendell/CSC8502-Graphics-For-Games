@@ -20,24 +20,8 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere) {
 	lights = new Light(Vector3(xPos, 600.0f, zPos), Vector4(1.0f, 1.0f, 1.0f, 1.0f),
 		4000.0f, 1.0f);
 
-	/*lights = new Light[8 * 8];
-	for (int x = 0; x < 8; ++x) {
-		for (int z = 0; z < 8; ++z) {
-			Light & l = lights[(x * 8) + z];
+	ambientColour = Vector3(0.2f, 0.2f, 0.2f);
 
-			float xPos = (RAW_WIDTH * HEIGHTMAP_X / (8 - 1)) * x;
-			float zPos = (RAW_HEIGHT * HEIGHTMAP_Z / (8 - 1)) * z;
-			l.SetPosition(Vector3(xPos, 100.0f, zPos));
-
-			float r = 0.5f + (float)(rand() % 129) / 128.0f;
-			float g = 0.5f + (float)(rand() % 129) / 128.0f;
-			float b = 0.5f + (float)(rand() % 129) / 128.0f;
-			l.SetColour(Vector4(r, g, b, 1.0f));
-
-			float radius = (RAW_WIDTH * HEIGHTMAP_X / 8);
-			l.SetRadius(radius);
-		}
-	}*/
 	GenBuffers();
 	pointLightShader = renderer->GetShaderWithName("Point Light");
 	combineShader = renderer->GetShaderWithName("Combine");
@@ -340,6 +324,9 @@ void Scene::CombineBuffers(Mesh* screen) {
 	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "normTex"), 4);
 	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "emissiveTex"), 5);
 	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "specularTex"), 6);
+
+	glUniform3f(glGetUniformLocation(combineShader->GetProgram(),
+		"ambientColour"), ambientColour.x, ambientColour.y, ambientColour.z);
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, bufferColourTex);
