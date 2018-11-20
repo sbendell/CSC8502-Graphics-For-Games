@@ -5,6 +5,7 @@ Material::Material(Shader* Shader, Vector4 Colour, unsigned int* Textures, int T
 	colour = Colour;
 
 	textureMatrix.ToIdentity();
+	textureNum = TextureNum;
 
 	for (int i = 0; i < TextureNum; i++)
 	{
@@ -23,13 +24,19 @@ Material::~Material()
 
 void Material::LoadParameters() {
 	glUseProgram(shader->GetProgram());
-	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"diffuseTex"), 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex"), 0);
+
+	for (int i = 0; i < textureNum; i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+	}
 };
 
 void Material::UnloadParamters() {
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	for (int i = 0; i < textureNum; i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 };

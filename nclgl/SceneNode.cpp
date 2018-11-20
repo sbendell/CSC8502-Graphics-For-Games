@@ -21,7 +21,7 @@ void SceneNode::AddChild(SceneNode* s) {
 	s->transform.Update(this->transform.GetWorldMatrix());
 }
 
-void SceneNode::Draw(const OGLRenderer& r) {
+void SceneNode::Draw() {
 	if (mesh) {
 		material->LoadParameters();
 		mesh->Draw();

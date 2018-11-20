@@ -5,10 +5,12 @@
 #include "../../nclgl/SceneNode.h"
 #include "../../nclgl/Frustum.h"
 #include "../../nclgl/HeightMap.h"
-#include "../../nclgl/Material.h"
 #include "../../nclgl/Scene.h"
 #include "../../nclgl/OBJmesh.h"
 #include <algorithm>
+
+#include "../../nclgl/Material.h"
+#include "../../nclgl/BumpMaterial.h"
 
 class Scene;
 
@@ -58,7 +60,13 @@ public:
 	}
 
 	inline Material* LoadMaterial(string MaterialName, Shader* Shader, Vector4 Colour, unsigned int* Textures, int NumTextures) {
-		Material* material = new Material(Shader, Colour, Textures, NumTextures);
+			Material* material = new Material(Shader, Colour, Textures, NumTextures);
+			materials.push_back(make_pair(MaterialName, material));
+			return material;
+	}
+
+	inline BumpMaterial* LoadBumpMaterial(string MaterialName, Shader* Shader, Vector4 Colour, unsigned int* Textures, int NumTextures) {
+		BumpMaterial* material = new BumpMaterial(Shader, Colour, Textures, NumTextures);
 		materials.push_back(make_pair(MaterialName, material));
 		return material;
 	}

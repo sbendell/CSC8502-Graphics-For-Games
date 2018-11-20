@@ -12,7 +12,8 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	Shader* pointLightShader = LoadShader("Point Light", "pointlightvert.glsl", "pointlightfrag.glsl");
 	Shader* combineShader = LoadShader("Combine", "combinevert.glsl", "combinefrag.glsl");
 
-	Material* terrainMaterial = LoadMaterial("Rocky Terrain", terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f), texes, 2);
+	BumpMaterial* terrainMaterial = LoadBumpMaterial("Rocky Terrain", terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+		texes, 2);
 
 	for (int i = 0; i < shaders.size(); i++)
 	{

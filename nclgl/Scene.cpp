@@ -2,7 +2,8 @@
 
 Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere) {
 	renderer = rend;
-	camera = new Camera(0.0f, -135.0f, 0.0f, Vector3(0, 500, 0), 1.0f, 1.0f, 10000.0f, width, height, 45.0f);
+	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_WIDTH * HEIGHTMAP_X),
+		1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
 	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
 
@@ -166,7 +167,7 @@ void Scene::DrawNode(SceneNode* n) {
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "textureMatrix"),
 			1, false, (float*)&n->GetMaterial()->GetTextureMatrix());
 
-		n->Draw(*renderer);
+		n->Draw();
 	}
 }
 
@@ -205,7 +206,7 @@ void Scene::DrawPointLights() {
 	glUniform3fv(glGetUniformLocation(pointLightShader->GetProgram(), "cameraPos"), 1, (float *)& camera->GetPosition());
 
 	glUniform2f(glGetUniformLocation(pointLightShader->GetProgram(), "pixelSize"),
-		1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowWidth());
+		1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowHeight());
 
 	Vector3 translate = Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500,
 		(RAW_HEIGHT * HEIGHTMAP_Z / 2.0f));

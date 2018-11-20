@@ -4,7 +4,7 @@
 #include "Renderer.h"
 
 int main(char* c, int args[]) {
-	Window w("My First OpenGL 3 Triangle!", 800, 600, false);
+	Window w("My First OpenGL 3 Triangle!", 1280, 720, false);
 
 	if (!w.HasInitialised()) {
 		return -1;

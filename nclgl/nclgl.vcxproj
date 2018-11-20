@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BumpMaterial.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameTimer.cpp" />
@@ -34,6 +35,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BumpMaterial.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ChildMeshInterface.h" />
     <ClInclude Include="common.h" />

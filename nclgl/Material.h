@@ -3,6 +3,10 @@
 
 class Shader;
 
+enum MaterialTypes {
+	TEXTURED, BUMP
+};
+
 class Material {
 public:
 	Material(Shader* Shader, Vector4 Colour, unsigned int* Textures, int TextureNum);
@@ -20,10 +24,12 @@ public:
 	Matrix4 GetTextureMatrix() { return textureMatrix; }
 	void SetTextureMatrix(Matrix4 mat) { textureMatrix = mat; }
 
-	unsigned int textures[16];
 protected:
 	Shader* shader;
 	Vector4 colour;
 
 	Matrix4 textureMatrix;
+
+	int textureNum;
+	unsigned int textures[16];
 };
