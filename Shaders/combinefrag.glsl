@@ -6,13 +6,8 @@ uniform sampler2D normTex;
 uniform sampler2D emissiveTex;
 uniform sampler2D lightSpecularTex;
 uniform sampler2D specularTex;
-uniform sampler2D metalnessTex;
-uniform sampler2D fragPosTex;
-
-uniform samplerCube cubeTex;
 
 uniform vec3 ambientColour;
-uniform vec3 cameraPos;
 
 in Vertex {
 	vec2 texCoord;
@@ -25,13 +20,8 @@ void main (void) {
 	vec3 depth = texture(depthTex, IN.texCoord).xyz;
 	vec4 normal = texture(normTex, IN.texCoord);
 	vec3 specular = texture(specularTex, IN.texCoord).xyz;
-	vec4 metalness = texture(metalnessTex, IN.texCoord);
 	vec3 light = texture(emissiveTex, IN.texCoord).xyz;
 	vec3 lightSpecular = texture(lightSpecularTex, IN.texCoord).xyz;
-
-	vec3 fragPos = texture(fragPosTex, IN.texCoord).xyz;
-	vec3 incident = normalize(fragPos - cameraPos);
-	vec4 reflection = texture(cubeTex, reflect(incident, normalize(normal).xyz));
 
 	vec3 ambient = ambientColour;
 	
@@ -39,7 +29,7 @@ void main (void) {
 		ambient = vec3(1.0f, 1.0f, 1.0f);
 	}
 	fragColour.xyz = diffuse * ambient; // ambient
-	fragColour.xyz += (diffuse * light) + ((reflection.xyz * metalness.xyz) * metalness.w); // lambert
+	fragColour.xyz += (diffuse * light);// lambert
 	fragColour.xyz += lightSpecular * specular; // Specular
 	fragColour.a = 1.0;
 }

@@ -11,6 +11,12 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		LoadTexture("Rock1 Metalness", "Rock_Ore_001_SD/Rock_Ore_001_METAL.jpg")
 	};
 
+	unsigned int* metaltexes = new unsigned int[4]{ LoadTexture("Metal1 Albedo", "Metal_Scales_001_SD/Scales_001_COLOR.jpg"),
+		LoadTexture("Metal1 Normal", "Metal_Scales_001_SD/Scales_001_NORM.jpg"),
+		LoadTexture("Metal1 Specular", "Metal_Scales_001_SD/Scales_001_ROUGH.jpg"),
+		LoadTexture("Metal1 Metalness", "Metal_Scales_001_SD/Scales_001_ROUGH.jpg")
+	};
+
 	unsigned int cubeMap = LoadCubeMap("Rusted", "rusted_west.jpg", "rusted_east.jpg",
 		"rusted_up.jpg", "rusted_down.jpg",
 		"rusted_south.jpg", "rusted_north.jpg");
@@ -21,7 +27,7 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	Shader* combineShader = LoadShader("Combine", "combinevert.glsl", "combinefrag.glsl");
 
 	Material* terrainMaterial = LoadMaterial("Rocky Terrain", terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
-		rocktexes, 4, PBR);
+		metaltexes, 4, PBR);
 
 	for (int i = 0; i < shaders.size(); i++)
 	{
@@ -97,21 +103,6 @@ void Renderer::GenerateScreenTexture(GLuint & into, bool depth) {
 
 	glTexImage2D(GL_TEXTURE_2D, 0, depth ? GL_DEPTH_COMPONENT24 : GL_RGBA8, width, height, 0,
 		depth ? GL_DEPTH_COMPONENT : GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void Renderer::GenerateScreen32Texture(GLuint & into, bool depth) {
-	glGenTextures(1, &into);
-	glBindTexture(GL_TEXTURE_2D, into);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, depth ? GL_DEPTH_COMPONENT24 : GL_RGBA32F, width, height, 0,
-		depth ? GL_DEPTH_COMPONENT : GL_RGBA, GL_FLOAT, NULL);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

@@ -14,19 +14,11 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere) {
 	terrain->SetBoundingRadius(100000.0f);
 	root->AddChild(terrain);
 
-	/*Mesh* quad = Mesh::GenerateQuad();
-	SceneNode* plane = new SceneNode(quad);
-	plane->SetMaterial(renderer->GetMaterialWithName("Rocky Terrain"));
-	plane->SetBoundingRadius(100000.0f);
-	plane->GetTransform().SetRotation(Vector3(90.0f, 0.0f, 0.0f));
-	plane->GetTransform().SetScale(Vector3(4000.0f, 1.0f, 4000.0f));
-	root->AddChild(plane);*/
-
 	float xPos = (RAW_WIDTH * HEIGHTMAP_X / 2);
 	float zPos = (RAW_HEIGHT * HEIGHTMAP_Z / 2);
 
 	lights = new Light(Vector3(xPos, 1000.0f, zPos), Vector4(0.2f, 0.2f, 0.2f, 1.0f),
-		4000.0f, 5.0f);
+		4000.0f, 15.0f);
 
 	ambientColour = Vector3(0.2f, 0.2f, 0.2f);
 
@@ -49,8 +41,6 @@ Scene::~Scene()
 	glDeleteTextures(1, &bufferNormalTex);
 	glDeleteTextures(1, &bufferDepthTex);
 	glDeleteTextures(1, &bufferSpecularTex);
-	glDeleteTextures(1, &bufferMetalnessTex);
-	glDeleteTextures(1, &bufferFragPositions);
 	glDeleteTextures(1, &lightEmissiveTex);
 	glDeleteTextures(1, &lightSpecularTex);
 
@@ -78,8 +68,6 @@ void Scene::GenBuffers() {
 	renderer->GenerateScreenTexture(bufferColourTex);
 	renderer->GenerateScreenTexture(bufferNormalTex);
 	renderer->GenerateScreenTexture(bufferSpecularTex);
-	renderer->GenerateScreenTexture(bufferMetalnessTex);
-	renderer->GenerateScreen32Texture(bufferFragPositions);
 	renderer->GenerateScreenTexture(lightEmissiveTex);
 	renderer->GenerateScreenTexture(lightSpecularTex);
 
@@ -91,14 +79,10 @@ void Scene::GenBuffers() {
 		GL_TEXTURE_2D, bufferNormalTex, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2,
 		GL_TEXTURE_2D, bufferSpecularTex, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3,
-		GL_TEXTURE_2D, bufferMetalnessTex, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4,
-		GL_TEXTURE_2D, bufferFragPositions, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
 		GL_TEXTURE_2D, bufferDepthTex, 0);
-	glDrawBuffers(5, GBuffer);
+	glDrawBuffers(3, GBuffer);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		return;
@@ -175,6 +159,8 @@ void Scene::DrawNodes() {
 }
 
 void Scene::DrawNode(SceneNode* n) {
+	glActiveTexture(GL_TEXTURE16);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
 	if (n->GetMesh()) {
 		GLuint shaderProgram = n->GetMaterial()->GetShader()->GetProgram();
 		glUseProgram(shaderProgram);
@@ -187,8 +173,16 @@ void Scene::DrawNode(SceneNode* n) {
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "textureMatrix"),
 			1, false, (float*)&n->GetMaterial()->GetTextureMatrix());
 
+		glUniform3fv(glGetUniformLocation(shaderProgram,
+			"cameraPos"), 1, (float *)& camera->GetPosition());
+
+		glUniform1i(glGetUniformLocation(shaderProgram,
+			"cubeTex"), 16);
+
 		n->Draw();
 	}
+	glActiveTexture(GL_TEXTURE16);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 void Scene::DrawSkybox(Mesh* screen) {
@@ -351,16 +345,12 @@ void Scene::CombineBuffers(Mesh* screen) {
 	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "depthTex"), 3);
 	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "normTex"), 4);
 	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "specularTex"), 5);
-	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "metalnessTex"), 6);
-	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "emissiveTex"), 7);
-	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "lightSpecularTex"), 8);
-	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "fragPosTex"), 9);
+	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "emissiveTex"), 6);
+	glUniform1i(glGetUniformLocation(combineShader->GetProgram(), "lightSpecularTex"), 7);
 
 
 	glUniform3f(glGetUniformLocation(combineShader->GetProgram(),
 		"ambientColour"), ambientColour.x, ambientColour.y, ambientColour.z);
-	glUniform3fv(glGetUniformLocation(combineShader->GetProgram(),
-		"cameraPos"), 1, (float *)& camera->GetPosition());
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, bufferColourTex);
@@ -375,22 +365,10 @@ void Scene::CombineBuffers(Mesh* screen) {
 	glBindTexture(GL_TEXTURE_2D, bufferSpecularTex);
 
 	glActiveTexture(GL_TEXTURE6);
-	glBindTexture(GL_TEXTURE_2D, bufferMetalnessTex);
-
-	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, lightEmissiveTex);
 
-	glActiveTexture(GL_TEXTURE8);
+	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, lightSpecularTex);
-
-	glActiveTexture(GL_TEXTURE9);
-	glBindTexture(GL_TEXTURE_2D, bufferFragPositions);
-
-	glUniform1i(glGetUniformLocation(combineShader->GetProgram(),
-		"cubeTex"), 10);
-
-	glActiveTexture(GL_TEXTURE10);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
 
 
 	screen->Draw();

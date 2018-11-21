@@ -97,7 +97,6 @@ public:
 	}
 
 	void GenerateScreenTexture(GLuint & into, bool depth = false);
-	void GenerateScreen32Texture(GLuint & into, bool depth = false);
 
 protected:
 	vector<pair<string, Shader*>> shaders;
