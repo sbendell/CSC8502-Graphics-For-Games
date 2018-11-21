@@ -11,6 +11,7 @@
 
 #include "../../nclgl/Material.h"
 #include "../../nclgl/BumpMaterial.h"
+#include "../../nclgl/PBRMaterial.h"
 
 class Scene;
 
@@ -86,10 +87,17 @@ public:
 			materials.push_back(make_pair(MaterialName, bumpMaterial));
 			return bumpMaterial;
 		}
+		case PBR:
+		{
+			PBRMaterial* pbrMaterial = new PBRMaterial(Shader, Colour, Textures, NumTextures);
+			materials.push_back(make_pair(MaterialName, pbrMaterial));
+			return pbrMaterial;
+		}
 		}
 	}
 
 	void GenerateScreenTexture(GLuint & into, bool depth = false);
+	void GenerateScreen32Texture(GLuint & into, bool depth = false);
 
 protected:
 	vector<pair<string, Shader*>> shaders;

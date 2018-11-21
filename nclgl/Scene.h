@@ -62,6 +62,9 @@ protected:
 	GLuint bufferColourTex; // Albedo goes here
 	GLuint bufferNormalTex; // Normals go here
 	GLuint bufferDepthTex; // Depth goes here
+	GLuint bufferSpecularTex;
+	GLuint bufferMetalnessTex;
+	GLuint bufferFragPositions;
 
 	GLuint pointLightFBO; // FBO for our lighting pass
 	GLuint lightEmissiveTex; // Store emissive lighting

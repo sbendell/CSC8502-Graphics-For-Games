@@ -4,7 +4,8 @@
 class Shader;
 
 enum MaterialTypes {
-	TEXTURED, BUMP
+	TEXTURED, BUMP,
+	PBR
 };
 
 class Material {

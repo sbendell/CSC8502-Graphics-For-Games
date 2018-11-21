@@ -41,7 +41,7 @@ public:
 	}
 
 	Vector3 GetScale() const { return scale; }
-	void GetScale(Vector3 Scale) { scale = Scale; }
+	void SetScale(Vector3 Scale) { scale = Scale; }
 
 	Matrix4 GetLocalMatrix() const { return localMatrix; }
 	void SetLocalMatrix(Matrix4 mat) { localMatrix = mat; }
@@ -49,14 +49,9 @@ public:
 	Matrix4 GetWorldMatrix() const { return worldMatrix; }
 
 	void Update(const Matrix4& parentTransform) {
-		float localYAxis = (rotation.y / 180.0f) - 1.0f;
-		float localZAxis = (rotation.z / 180.0f) - 1.0f;
-
 		localMatrix = Matrix4::Translation(translation)
-			* Matrix4::Rotation(rotation.x, Vector3(1.0f, 0.0f, 0.0f))
-			* Matrix4::Rotation(rotation.y, Vector3(0.0f, localYAxis, 0.0f))
-			* Matrix4::Rotation(rotation.z, Vector3(0.0f, 0.0f, localZAxis))
-			* Matrix4::Scale(scale);
+			* Matrix4::Scale(scale)
+			* Matrix4::Rotation(rotation.x, Vector3(1.0f, 0.0f, 0.0f));
 
 		worldMatrix = parentTransform * localMatrix;
 	}

@@ -27,6 +27,7 @@
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="OBJMesh.cpp" />
     <ClCompile Include="OGLRenderer.cpp" />
+    <ClCompile Include="PBRMaterial.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -55,6 +56,7 @@
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="OBJMesh.h" />
     <ClInclude Include="OGLRenderer.h" />
+    <ClInclude Include="PBRMaterial.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Scene.h" />
