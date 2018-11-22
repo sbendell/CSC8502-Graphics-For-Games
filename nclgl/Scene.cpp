@@ -2,7 +2,7 @@
 
 Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere) {
 	renderer = rend;
-	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_WIDTH * HEIGHTMAP_X),
+	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
 		1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
 	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
@@ -14,18 +14,31 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere) {
 	terrain->SetBoundingRadius(100000.0f);
 	root->AddChild(terrain);
 
-	float xPos = (RAW_WIDTH * HEIGHTMAP_X / 2);
-	float zPos = (RAW_HEIGHT * HEIGHTMAP_Z / 2);
+	float xPos = (RAW_WIDTH * HEIGHTMAP_X);
+	float zPos = (RAW_HEIGHT * HEIGHTMAP_Z);
 
-	lights = new Light(Vector3(xPos, 1000.0f, zPos), Vector4(0.2f, 0.2f, 0.2f, 1.0f),
-		4000.0f, 15.0f);
+	lights = new Light[LIGHTNUMS1 * LIGHTNUMS1];
+	shadowTex = new GLuint[LIGHTNUMS1 * LIGHTNUMS1];
+
+	for (int x = 0; x < LIGHTNUMS1; x++)
+	{
+		for (int z = 0; z < LIGHTNUMS1; z++)
+		{
+			lights[x * LIGHTNUMS1 + z] = Light(Vector3(xPos * x, 1000.0f, zPos * z), Vector4(0.2f, 0.2f, 0.2f, 1.0f),
+				4000.0f, 15.0f);
+		}
+	}
 
 	ambientColour = Vector3(0.2f, 0.2f, 0.2f);
 
+	shadowMatrixes = new Matrix4[LIGHTNUMS1 * LIGHTNUMS1];
 	GenBuffers();
 	pointLightShader = renderer->GetShaderWithName("Point Light");
+	shadowShader = renderer->GetShaderWithName("Shadow");
 	combineShader = renderer->GetShaderWithName("Combine");
 	skyboxShader = renderer->GetShaderWithName("Skybox");
+	postProcessShader = renderer->GetShaderWithName("Blur Post Process");
+	presentShader = renderer->GetShaderWithName("Texture");
 	lightSphere = sphere;
 }
 
@@ -43,14 +56,20 @@ Scene::~Scene()
 	glDeleteTextures(1, &bufferSpecularTex);
 	glDeleteTextures(1, &lightEmissiveTex);
 	glDeleteTextures(1, &lightSpecularTex);
+	glDeleteTextures(2, postProcessTex);
+	glDeleteTextures(6, shadowTex);
 
 	glDeleteFramebuffers(1, &bufferFBO);
 	glDeleteFramebuffers(1, &pointLightFBO);
+	glDeleteFramebuffers(1, &postProcessFBO);
+	glDeleteFramebuffers(1, &shadowFBO);
 }
 
 void Scene::GenBuffers() {
 	glGenFramebuffers(1, &bufferFBO);
 	glGenFramebuffers(1, &pointLightFBO);
+	glGenFramebuffers(1, &postProcessFBO);
+	glGenFramebuffers(1, &shadowFBO);
 
 	GLenum GBuffer[5];
 	GBuffer[0] = GL_COLOR_ATTACHMENT0;
@@ -67,9 +86,7 @@ void Scene::GenBuffers() {
 	renderer->GenerateScreenTexture(bufferDepthTex, true);
 	renderer->GenerateScreenTexture(bufferColourTex);
 	renderer->GenerateScreenTexture(bufferNormalTex);
-	renderer->GenerateScreenTexture(bufferSpecularTex);
-	renderer->GenerateScreenTexture(lightEmissiveTex);
-	renderer->GenerateScreenTexture(lightSpecularTex);
+	renderer->GenerateScreenTexture(bufferSpecularTex);	
 
 	// And now attach them to our FBOs
 	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
@@ -88,12 +105,54 @@ void Scene::GenBuffers() {
 		return;
 	}
 
+	renderer->GenerateScreenTexture(lightEmissiveTex);
+	renderer->GenerateScreenTexture(lightSpecularTex);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, pointLightFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, lightEmissiveTex, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
 		GL_TEXTURE_2D, lightSpecularTex, 0);
 	glDrawBuffers(2, lightBuffer);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		return;
+	}
+
+	glGenTextures(LIGHTNUMS1 * LIGHTNUMS1, shadowTex);
+	for (int i = 0; i < LIGHTNUMS1 * LIGHTNUMS1; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, shadowTex[i]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+			SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
+			GL_COMPARE_R_TO_TEXTURE);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_TEXTURE_2D, shadowTex[0], 0);
+	glDrawBuffer(GL_NONE);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		return;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	renderer->GenerateScreenTexture(postProcessTex[0]);
+	renderer->GenerateScreenTexture(postProcessTex[1]);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, postProcessFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, postProcessTex[0], 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		return;
@@ -111,10 +170,13 @@ void Scene::UpdateScene(float msec) {
 void Scene::RenderScene(Mesh* screen, Mesh* fullScreen) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	DrawShadowScene();
 	DrawSkybox(fullScreen);
 	FillBuffers();
 	DrawPointLights();
-	CombineBuffers(screen);
+	CombineBuffers(fullScreen);
+	PostProcess(fullScreen);
+	PresentScene(screen);
 }
 
 void Scene::BuildNodeLists(SceneNode * from) {
@@ -147,42 +209,86 @@ void Scene::ClearNodeLists() {
 	nodeList.clear();
 }
 
-void Scene::DrawNodes() {
+void Scene::DrawNodes(bool shadow) {
 	for (vector<SceneNode*>::const_iterator i = nodeList.begin(); i != nodeList.end(); ++i) {
-		DrawNode((*i));
+		DrawNode((*i), shadow);
 	}
 	glDisable(GL_CULL_FACE);
 	for (vector<SceneNode*>::const_reverse_iterator i = transparentNodeList.rbegin(); i != transparentNodeList.rend(); ++i) {
-		DrawNode((*i));
+		DrawNode((*i), shadow);
 	}
 	glEnable(GL_CULL_FACE);
 }
 
-void Scene::DrawNode(SceneNode* n) {
+void Scene::DrawNode(SceneNode* n, bool shadow) {
 	glActiveTexture(GL_TEXTURE16);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
 	if (n->GetMesh()) {
 		GLuint shaderProgram = n->GetMaterial()->GetShader()->GetProgram();
-		glUseProgram(shaderProgram);
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgram,
-			"modelMatrix"), 1, false, (float*)&n->GetTransform().GetWorldMatrix());
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"),
-			1, false, (float*)&camera->GetViewMatrix());
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projMatrix"),
-			1, false, (float*)&camera->GetProjectionMatrix());
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "textureMatrix"),
-			1, false, (float*)&n->GetMaterial()->GetTextureMatrix());
+		if (!shadow) {
+			glUseProgram(shaderProgram);
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram,
+				"modelMatrix"), 1, false, (float*)&n->GetTransform().GetWorldMatrix());
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "viewMatrix"),
+				1, false, (float*)&camera->GetViewMatrix());
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projMatrix"),
+				1, false, (float*)&camera->GetProjectionMatrix());
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "textureMatrix"),
+				1, false, (float*)&n->GetMaterial()->GetTextureMatrix());
 
-		glUniform3fv(glGetUniformLocation(shaderProgram,
-			"cameraPos"), 1, (float *)& camera->GetPosition());
+			glUniform3fv(glGetUniformLocation(shaderProgram,
+				"cameraPos"), 1, (float *)& camera->GetPosition());
 
-		glUniform1i(glGetUniformLocation(shaderProgram,
-			"cubeTex"), 16);
+			glUniform1i(glGetUniformLocation(shaderProgram,
+				"cubeTex"), 16);
+		}
+		else {
+			glUniformMatrix4fv(glGetUniformLocation(shadowShader->GetProgram(),
+				"modelMatrix"), 1, false, (float*)&n->GetTransform().GetWorldMatrix());
+		}
 
-		n->Draw();
+		n->Draw(shadow);
 	}
 	glActiveTexture(GL_TEXTURE16);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void Scene::DrawShadowScene() {
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+	glUseProgram(shadowShader->GetProgram());
+
+	for (int i = 0; i < LIGHTNUMS1 * LIGHTNUMS1; i++)
+	{
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+			GL_TEXTURE_2D, shadowTex[i], 0);
+
+		Matrix4 tempViewMatrix = Matrix4::BuildViewMatrix(lights[i].GetPosition(),
+			Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 0, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f));
+		shadowMatrixes[i] = biasMatrix * (camera->GetProjectionMatrix() * tempViewMatrix);
+
+		Matrix4 identity;
+		identity.ToIdentity();
+
+		glUniformMatrix4fv(glGetUniformLocation(shadowShader->GetProgram(), "viewMatrix"),
+			1, false, (float*)&tempViewMatrix);
+		glUniformMatrix4fv(glGetUniformLocation(shadowShader->GetProgram(), "projMatrix"),
+			1, false, (float*)&camera->GetProjectionMatrix());
+
+		BuildNodeLists(root);
+		SortNodeLists();
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		DrawNodes(true);
+		ClearNodeLists();
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, camera->GetWindowWidth(), camera->GetWindowHeight());
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
 
 void Scene::DrawSkybox(Mesh* screen) {
@@ -233,7 +339,7 @@ void Scene::FillBuffers() {
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	DrawNodes();
+	DrawNodes(false);
 	ClearNodeLists();
 
 	glUseProgram(0);
@@ -263,21 +369,12 @@ void Scene::DrawPointLights() {
 	glUniform2f(glGetUniformLocation(pointLightShader->GetProgram(), "pixelSize"),
 		1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowHeight());
 
-	Vector3 translate = Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500,
-		(RAW_HEIGHT * HEIGHTMAP_Z / 2.0f));
-
-	Matrix4 pushMatrix = Matrix4::Translation(translate);
-	Matrix4 popMatrix = Matrix4::Translation(-translate);
-
-	for (int x = 0; x < 1; ++x) {
-		for (int z = 0; z < 1; ++z) {
-			Light & l = lights[(x * 1) + z];
+	for (int x = 0; x < LIGHTNUMS1; ++x) {
+		for (int z = 0; z < LIGHTNUMS1; ++z) {
+			Light & l = lights[(x * LIGHTNUMS1) + z];
 			float radius = l.GetRadius();
 
 			Matrix4 tempModelMatrix =
-				pushMatrix *
-				Matrix4::Rotation(0.0f, Vector3(0, 1, 0)) *
-				popMatrix *
 				Matrix4::Translation(l.GetPosition()) *
 				Matrix4::Scale(Vector3(radius, radius, radius));
 
@@ -326,6 +423,11 @@ void Scene::DrawPointLights() {
 
 void Scene::CombineBuffers(Mesh* screen) {
 	glUseProgram(combineShader->GetProgram());
+	glBindFramebuffer(GL_FRAMEBUFFER, postProcessFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, postProcessTex[1], 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT |
+		GL_STENCIL_BUFFER_BIT);
 
 	Matrix4 tempProjMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
 	
@@ -373,5 +475,68 @@ void Scene::CombineBuffers(Mesh* screen) {
 
 	screen->Draw();
 
+	glUseProgram(0);
+}
+
+void Scene::PostProcess(Mesh* screen) {
+	glUseProgram(postProcessShader->GetProgram());
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, postProcessTex[0], 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	Matrix4 tempProjMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+
+	Matrix4 identity;
+	identity.ToIdentity();
+
+	glUniformMatrix4fv(glGetUniformLocation(postProcessShader->GetProgram(),
+		"modelMatrix"), 1, false, (float*)&identity);
+	glUniformMatrix4fv(glGetUniformLocation(postProcessShader->GetProgram(),
+		"viewMatrix"), 1, false, (float*)&identity);
+	glUniformMatrix4fv(glGetUniformLocation(postProcessShader->GetProgram(),
+		"projMatrix"), 1, false, (float*)&tempProjMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(postProcessShader->GetProgram(),
+		"textureMatrix"), 1, false, (float*)&identity);
+
+	glUniform1i(glGetUniformLocation(postProcessShader->GetProgram(), "diffuseTex"), 0);
+	glUniform2f(glGetUniformLocation(postProcessShader->GetProgram(),
+		"pixelSize"), 1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowHeight());
+	glUniform1i(glGetUniformLocation(postProcessShader->GetProgram(),
+		"isVertical"), 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
+
+	screen->Draw();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUseProgram(0);
+}
+
+void Scene::PresentScene(Mesh* screen) {
+	glUseProgram(presentShader->GetProgram());
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	Matrix4 tempProjMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+
+	Matrix4 identity;
+	identity.ToIdentity();
+
+	glUniformMatrix4fv(glGetUniformLocation(presentShader->GetProgram(),
+		"modelMatrix"), 1, false, (float*)&identity);
+	glUniformMatrix4fv(glGetUniformLocation(presentShader->GetProgram(),
+		"viewMatrix"), 1, false, (float*)&identity);
+	glUniformMatrix4fv(glGetUniformLocation(presentShader->GetProgram(),
+		"projMatrix"), 1, false, (float*)&tempProjMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(presentShader->GetProgram(),
+		"textureMatrix"), 1, false, (float*)&identity);
+	glUniform1i(glGetUniformLocation(postProcessShader->GetProgram(), "diffuseTex"), 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, postProcessTex[0]);
+
+	screen->Draw();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
 }

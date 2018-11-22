@@ -21,12 +21,16 @@ void SceneNode::AddChild(SceneNode* s) {
 	s->transform.Update(this->transform.GetWorldMatrix());
 }
 
-void SceneNode::Draw() {
+void SceneNode::Draw(bool shadow) {
 	if (mesh) {
-
-		material->LoadParameters();
-		mesh->Draw();
-		material->UnloadParameters();
+		if (!shadow) {
+			material->LoadParameters();
+			mesh->Draw();
+			material->UnloadParameters();
+		}
+		else {
+			mesh->Draw();
+		}
 	}
 }
 

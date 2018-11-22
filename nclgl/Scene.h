@@ -8,6 +8,9 @@
 #include "../../nclgl/Material.h"
 #include <algorithm>
 
+#define LIGHTNUMS1 2
+#define SHADOWSIZE 2048
+
 class Renderer;
 class OBJMesh;
 
@@ -28,13 +31,16 @@ protected:
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();
 	void ClearNodeLists();
-	void DrawNodes();
-	void DrawNode(SceneNode* n);
+	void DrawNodes(bool shadow);
+	void DrawNode(SceneNode* n, bool shadow);
 	
+	void DrawShadowScene();
 	void DrawSkybox(Mesh* screen);
 	void FillBuffers(); //G- Buffer Fill Render Pass
 	void DrawPointLights(); // Lighting Render Pass
 	void CombineBuffers(Mesh* screen); // Combination Render Pass
+	void PostProcess(Mesh* screen);
+	void PresentScene(Mesh* screen);
 
 	void GenBuffers();
 
@@ -51,7 +57,10 @@ protected:
 	Shader* pointLightShader;
 	OBJMesh* lightSphere;
 
+	Shader* shadowShader;
 	Shader* combineShader;
+	Shader* postProcessShader;
+	Shader* presentShader;
 
 	Frustum frameFrustum;
 
@@ -67,4 +76,11 @@ protected:
 	GLuint pointLightFBO; // FBO for our lighting pass
 	GLuint lightEmissiveTex; // Store emissive lighting
 	GLuint lightSpecularTex; // Store specular lighting
+
+	GLuint shadowFBO;
+	GLuint* shadowTex;
+	Matrix4* shadowMatrixes;
+
+	GLuint postProcessFBO;
+	GLuint postProcessTex[2];
 };

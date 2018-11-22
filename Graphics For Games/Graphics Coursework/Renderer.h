@@ -12,6 +12,7 @@
 #include "../../nclgl/Material.h"
 #include "../../nclgl/BumpMaterial.h"
 #include "../../nclgl/PBRMaterial.h"
+#include "../../nclgl/TerrainPBRMaterial.h"
 
 class Scene;
 
@@ -40,7 +41,8 @@ public:
 	inline GLuint GetTextureWithName(string name) {
 		for (int i = 0; i < textures.size(); i++)
 		{
-			if (textures[i].first == name) return textures[i].second;
+			if (textures[i].first == name)
+				return textures[i].second;
 		}
 	}
 
@@ -93,10 +95,17 @@ public:
 			materials.push_back(make_pair(MaterialName, pbrMaterial));
 			return pbrMaterial;
 		}
+		case TERRAINPBR:
+		{
+			TerrainPBRMaterial* terrainpbrMaterial = new TerrainPBRMaterial(Shader, Colour, Textures, NumTextures);
+			materials.push_back(make_pair(MaterialName, terrainpbrMaterial));
+			return terrainpbrMaterial;
+		}
 		}
 	}
 
 	void GenerateScreenTexture(GLuint & into, bool depth = false);
+	void SmashTerrain(int x, int y, GLuint texture);
 
 protected:
 	vector<pair<string, Shader*>> shaders;

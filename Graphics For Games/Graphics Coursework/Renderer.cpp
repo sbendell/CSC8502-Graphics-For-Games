@@ -5,29 +5,36 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	shaders.reserve(20);
 	materials.reserve(50);
 
-	unsigned int* rocktexes = new unsigned int[4] { LoadTexture("Rock1 Albedo", "Rock_Ore_001_SD/Rock_Ore_001_COLOR.jpg"),
+	unsigned int* terraintexes = new unsigned int[13]{ LoadTexture("Grass1 Albedo", "Grass_001_SD/Grass_001_COLOR.jpg"),
+		LoadTexture("Grass1 Normal", "Grass_001_SD/Grass_001_NORM.jpg"),
+		LoadTexture("Grass1 Specular", "Grass_001_SD/Grass_001_ROUGH.jpg"),
+		LoadTexture("Grass1 Metalness", "Grass_001_SD/Grass_001_ROUGH.jpg"),
+		LoadTexture("Rock1 Albedo", "Rock_Ore_001_SD/Rock_Ore_001_COLOR.jpg"),
 		LoadTexture("Rock1 Normal", "Rock_Ore_001_SD/Rock_Ore_001_NORM.jpg"),
 		LoadTexture("Rock1 Specular", "Rock_Ore_001_SD/Rock_Ore_001_SPEC.jpg"),
-		LoadTexture("Rock1 Metalness", "Rock_Ore_001_SD/Rock_Ore_001_METAL.jpg")
-	};
-
-	unsigned int* metaltexes = new unsigned int[4]{ LoadTexture("Metal1 Albedo", "Metal_Scales_001_SD/Scales_001_COLOR.jpg"),
-		LoadTexture("Metal1 Normal", "Metal_Scales_001_SD/Scales_001_NORM.jpg"),
-		LoadTexture("Metal1 Specular", "Metal_Scales_001_SD/Scales_001_ROUGH.jpg"),
-		LoadTexture("Metal1 Metalness", "Metal_Scales_001_SD/Scales_001_ROUGH.jpg")
+		LoadTexture("Rock1 Metalness", "Rock_Ore_001_SD/Rock_Ore_001_METAL.jpg"),
+		LoadTexture("Snow1 Albedo", "Snow_001_SD/Snow_001_COLOR.jpg"),
+		LoadTexture("Snow1 Normal", "Snow_001_SD/Snow_001_NORM.jpg"),
+		LoadTexture("Snow1 Specular", "Snow_001_SD/Snow_001_ROUGH.jpg"),
+		LoadTexture("Snow1 Metalness", "Snow_001_SD/Snow_001_ROUGH.jpg"),
+		LoadTexture("Crater", "Crater.png")
 	};
 
 	unsigned int cubeMap = LoadCubeMap("Rusted", "rusted_west.jpg", "rusted_east.jpg",
 		"rusted_up.jpg", "rusted_down.jpg",
 		"rusted_south.jpg", "rusted_north.jpg");
 
-	Shader* terrainShader = LoadShader("Terrain", "pbrvertex.glsl", "pbrfrag.glsl");
+	Shader* pbrShader = LoadShader("PBR", "pbrvertex.glsl", "pbrfrag.glsl");
+	Shader* terrainShader = LoadShader("Terrain", "terrainpbrvert.glsl", "terrainpbrfrag.glsl");
 	Shader* pointLightShader = LoadShader("Point Light", "pointlightvert.glsl", "pointlightfrag.glsl");
 	Shader* skyboxShader = LoadShader("Skybox", "skyboxVertex.glsl", "skyboxFragment2.glsl");
 	Shader* combineShader = LoadShader("Combine", "combinevert.glsl", "combinefrag.glsl");
+	Shader* blurShader = LoadShader("Blur Post Process", "TexturedVertex.glsl", "processfrag.glsl");
+	Shader* textureShader = LoadShader("Texture", "TexturedVertex.glsl", "TexturedFragment.glsl");
+	Shader* shadowShader = LoadShader("Shadow", "shadowvert.glsl", "shadowfrag.glsl");
 
 	Material* terrainMaterial = LoadMaterial("Rocky Terrain", terrainShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
-		metaltexes, 4, PBR);
+		terraintexes, 13, TERRAINPBR);
 
 	for (int i = 0; i < shaders.size(); i++)
 	{
@@ -125,4 +132,32 @@ void Renderer::RenderScene() {
 
 	glUseProgram(0);
 	SwapBuffers();
+}
+
+void Renderer::SmashTerrain(int xPos, int yPos, GLuint texture) {
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	float* pixels = new float[256 * 256 * 4];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
+	for (int i = -20; i < 20; i++)
+	{
+		for (int j = -20; j < 20; j++)
+		{
+			float temp = sqrt(pow(i, 2) + pow(j, 2));
+			int index = 4 * ((xPos + i) * 256 + (yPos + j)) + 0;
+			if (temp < 20) {
+				pixels[index + 0] = pixels[index + 0] * (1.0f - cos((temp / 20.0f) * (PI / 2.0f)));
+				pixels[index + 1] = pixels[index + 1] * (1.0f - cos((temp / 20.0f) * (PI / 2.0f)));
+				pixels[index + 2] = pixels[index + 2] * (1.0f - cos((temp / 20.0f) * (PI / 2.0f)));
+				pixels[index + 3] = 1.0f;
+			}
+		}
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_FLOAT, pixels);
+	glGenerateMipmap(GL_TEXTURE_2D);  //Generate mipmaps now!!!
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	delete pixels;
 }
