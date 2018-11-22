@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #define LIGHTNUMS1 2
+#define LIGHTNUMS2 8
 #define SHADOWSIZE 2048
 
 class Renderer;
@@ -17,7 +18,7 @@ class OBJMesh;
 class Scene
 {
 public:
-	Scene(Renderer* rend, int width, int height, OBJMesh* sphere);
+	Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene);
 	Scene();
 	~Scene();
 
@@ -42,7 +43,7 @@ protected:
 	void PostProcess(Mesh* screen);
 	void PresentScene(Mesh* screen);
 
-	void GenBuffers();
+	void GenBuffers(int lights);
 
 	Renderer* renderer;
 
@@ -83,4 +84,7 @@ protected:
 
 	GLuint postProcessFBO;
 	GLuint postProcessTex[2];
+
+	int scene;
+	OBJMesh* meteorMesh;
 };

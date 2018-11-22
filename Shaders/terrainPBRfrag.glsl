@@ -3,17 +3,18 @@
 uniform sampler2D diffuseTex; // Diffuse texture map
 uniform sampler2D bumpTex; // Bump map
 uniform sampler2D specularTex;
-uniform sampler2D metalnessTex;
 
 uniform sampler2D rdiffuseTex; // Diffuse texture map
 uniform sampler2D rbumpTex; // Bump map
 uniform sampler2D rspecularTex;
-uniform sampler2D rmetalnessTex;
 
 uniform sampler2D sdiffuseTex; // Diffuse texture map
 uniform sampler2D sbumpTex; // Bump map
 uniform sampler2D sspecularTex;
-uniform sampler2D smetalnessTex;
+
+uniform sampler2D ldiffuseTex; // Diffuse texture map
+uniform sampler2D lbumpTex; // Bump map
+uniform sampler2D lspecularTex;
 
 uniform sampler2D craterTex;
 
@@ -42,6 +43,10 @@ void main (void) {
 	vec3 finalNormal = mix(gnormal, snormal, IN.worldPos.y / 300);
 	vec4 finalColour = mix(gcolour, scolour, IN.worldPos.y / 300);
 	vec4 finalSpecular = mix(gspecular, sspecular, IN.worldPos.y / 300);
+	
+	finalNormal = mix(texture2D(lbumpTex, IN.texCoord).rgb, finalNormal, texture2D(craterTex, IN.texCoord / 16).r); 
+	finalColour = mix(texture2D(ldiffuseTex, IN.texCoord), finalColour, texture2D(craterTex, IN.texCoord / 16).r); 
+	finalSpecular = mix(texture2D(lspecularTex, IN.texCoord), finalSpecular, texture2D(craterTex, IN.texCoord / 16).r ); 
 
 	finalColour = mix(texture2D(rdiffuseTex, IN.texCoord), finalColour, (IN.normal.y - 0.7) * 3);
 	finalNormal = normalize(mix(texture2D(rbumpTex, IN.texCoord).xyz, finalNormal, (IN.normal.y - 0.7) * 3));

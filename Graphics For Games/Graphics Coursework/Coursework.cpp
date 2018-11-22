@@ -19,9 +19,6 @@ int main(char* c, int args[]) {
 	w.LockMouseToWindow(true);
 
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)) {
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_O)) {
-			renderer.SmashTerrain(rand() % 186 + 30, rand() % 186 + 30, renderer.GetTextureWithName("Crater"));
-		}
 		renderer.UpdateScene(w.GetTimer()->GetTimedMS());
 		renderer.RenderScene();
 	}

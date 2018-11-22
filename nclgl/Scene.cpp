@@ -1,45 +1,96 @@
 #include "Scene.h"
 
-Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere) {
+Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) {
 	renderer = rend;
-	camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
-		1.0f, 1.0f, 10000.0f, width, height, 45.0f);
-
-	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
-
 	root = new SceneNode();
+	lightSphere = sphere;
+	this->scene = scene;
 
-	SceneNode* terrain = new SceneNode(heightMap);
-	terrain->SetMaterial(renderer->GetMaterialWithName("Rocky Terrain"));
-	terrain->SetBoundingRadius(100000.0f);
-	root->AddChild(terrain);
+	if (scene == 1) {
+		camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
+			1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
-	float xPos = (RAW_WIDTH * HEIGHTMAP_X);
-	float zPos = (RAW_HEIGHT * HEIGHTMAP_Z);
+		heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
 
-	lights = new Light[LIGHTNUMS1 * LIGHTNUMS1];
-	shadowTex = new GLuint[LIGHTNUMS1 * LIGHTNUMS1];
+		SceneNode* terrain = new SceneNode(heightMap);
+		terrain->SetMaterial(renderer->GetMaterialWithName("Rocky Terrain"));
+		terrain->SetBoundingRadius(100000.0f);
+		root->AddChild(terrain);
 
-	for (int x = 0; x < LIGHTNUMS1; x++)
-	{
-		for (int z = 0; z < LIGHTNUMS1; z++)
+		float xPos = (RAW_WIDTH * HEIGHTMAP_X);
+		float zPos = (RAW_HEIGHT * HEIGHTMAP_Z);
+
+		lights = new Light[LIGHTNUMS1 * LIGHTNUMS1];
+		shadowTex = new GLuint[LIGHTNUMS1 * LIGHTNUMS1];
+
+		for (int x = 0; x < LIGHTNUMS1; x++)
 		{
-			lights[x * LIGHTNUMS1 + z] = Light(Vector3(xPos * x, 1000.0f, zPos * z), Vector4(0.2f, 0.2f, 0.2f, 1.0f),
-				4000.0f, 15.0f);
+			for (int z = 0; z < LIGHTNUMS1; z++)
+			{
+				lights[x * LIGHTNUMS1 + z] = Light(Vector3(xPos * x, 1000.0f, zPos * z), Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+					4000.0f, 3.0f);
+			}
 		}
+
+		ambientColour = Vector3(0.2f, 0.2f, 0.2f);
+
+		shadowMatrixes = new Matrix4[LIGHTNUMS1 * LIGHTNUMS1];
+
+		GenBuffers(LIGHTNUMS1);
+
+		meteorMesh = new OBJMesh();
+		if (!meteorMesh->LoadOBJMesh(MESHDIR "sphere.obj")) {
+			return;
+		}
+
+		SceneNode* meteor = new SceneNode(meteorMesh);
+		meteor->SetMaterial(renderer->GetMaterialWithName("Meteor"));
+		meteor->SetBoundingRadius(300.0f);
+		meteor->GetTransform().SetTranslation(Vector3(500.0f, 2000.0f, 500.0f));
+		meteor->GetTransform().SetScale(Vector3(-100.0f, -100.0f, -100.0f));
+		root->AddChild(meteor);
 	}
+	else if (scene == 2) {
+		camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
+			1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
-	ambientColour = Vector3(0.2f, 0.2f, 0.2f);
+		heightMap = new HeightMap(TEXTUREDIR"flat.raw");
 
-	shadowMatrixes = new Matrix4[LIGHTNUMS1 * LIGHTNUMS1];
-	GenBuffers();
+		float xPos = (RAW_WIDTH * HEIGHTMAP_X) / LIGHTNUMS2;
+		float zPos = (RAW_HEIGHT * HEIGHTMAP_Z) / LIGHTNUMS2;
+
+		lights = new Light[LIGHTNUMS2 * LIGHTNUMS2];
+		shadowTex = new GLuint[LIGHTNUMS2 * LIGHTNUMS2];
+
+		for (int x = 0; x < LIGHTNUMS2; x++)
+		{
+			for (int z = 0; z < LIGHTNUMS2; z++)
+			{
+				float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+				float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+				float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+				lights[x * LIGHTNUMS2 + z] = Light(Vector3(xPos * x, 100.0f, zPos * z), Vector4(r, g, b, 1.0f),
+					500.0f, 3.0f);
+			}
+		}
+
+		ambientColour = Vector3(0.2f, 0.2f, 0.2f);
+
+		shadowMatrixes = new Matrix4[LIGHTNUMS2 * LIGHTNUMS2];
+
+		GenBuffers(LIGHTNUMS2);
+
+		SceneNode* terrain = new SceneNode(heightMap);
+		terrain->SetMaterial(renderer->GetMaterialWithName("Shiny Metal"));
+		terrain->SetBoundingRadius(100000.0f);
+		root->AddChild(terrain);
+	}
 	pointLightShader = renderer->GetShaderWithName("Point Light");
 	shadowShader = renderer->GetShaderWithName("Shadow");
 	combineShader = renderer->GetShaderWithName("Combine");
 	skyboxShader = renderer->GetShaderWithName("Skybox");
 	postProcessShader = renderer->GetShaderWithName("Blur Post Process");
 	presentShader = renderer->GetShaderWithName("Texture");
-	lightSphere = sphere;
 }
 
 Scene::Scene()
@@ -63,9 +114,13 @@ Scene::~Scene()
 	glDeleteFramebuffers(1, &pointLightFBO);
 	glDeleteFramebuffers(1, &postProcessFBO);
 	glDeleteFramebuffers(1, &shadowFBO);
+
+	if (scene == 1) {
+		delete meteorMesh;
+	}
 }
 
-void Scene::GenBuffers() {
+void Scene::GenBuffers(int lights) {
 	glGenFramebuffers(1, &bufferFBO);
 	glGenFramebuffers(1, &pointLightFBO);
 	glGenFramebuffers(1, &postProcessFBO);
@@ -119,8 +174,8 @@ void Scene::GenBuffers() {
 		return;
 	}
 
-	glGenTextures(LIGHTNUMS1 * LIGHTNUMS1, shadowTex);
-	for (int i = 0; i < LIGHTNUMS1 * LIGHTNUMS1; i++)
+	glGenTextures(lights * lights, shadowTex);
+	for (int i = 0; i < lights * lights; i++)
 	{
 		glBindTexture(GL_TEXTURE_2D, shadowTex[i]);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -162,6 +217,25 @@ void Scene::GenBuffers() {
 }
 
 void Scene::UpdateScene(float msec) {
+	if (scene == 1) {
+		auto meteor = root->GetChildIteratorStart();
+		meteor++;
+
+		if ((*meteor)->GetTransform().GetTranslation().y < -500) {
+			int newX = rand() % RAW_WIDTH * HEIGHTMAP_X;
+			int newY = rand() % RAW_WIDTH * HEIGHTMAP_X;
+			(*meteor)->GetTransform().SetTranslation(Vector3(newX,
+				2000, newY));
+		}
+		if ((*meteor)->GetTransform().GetTranslation().y > 230 && (*meteor)->GetTransform().GetTranslation().y < 250) {
+			renderer->SmashTerrain((*meteor)->GetTransform().GetTranslation().z / 16,
+				(*meteor)->GetTransform().GetTranslation().x / 16,
+				renderer->GetTextureWithName("Crater"));
+		}
+		(*meteor)->GetTransform().SetTranslation(Vector3((*meteor)->GetTransform().GetTranslation().x,
+			(*meteor)->GetTransform().GetTranslation().y - 10,
+			(*meteor)->GetTransform().GetTranslation().z));
+	}
 	camera->UpdateCamera(msec);
 	frameFrustum.FromMatrix(camera->GetProjectionMatrix()*camera->GetViewMatrix());
 	root->Update(msec);
@@ -261,7 +335,15 @@ void Scene::DrawShadowScene() {
 
 	glUseProgram(shadowShader->GetProgram());
 
-	for (int i = 0; i < LIGHTNUMS1 * LIGHTNUMS1; i++)
+	int numlights = 0;
+
+	if (scene == 1) {
+		numlights = LIGHTNUMS1;
+	}
+	else if (scene == 2) {
+		LIGHTNUMS2;
+	}
+	for (int i = 0; i < numlights * numlights; i++)
 	{
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
 			GL_TEXTURE_2D, shadowTex[i], 0);
@@ -369,9 +451,18 @@ void Scene::DrawPointLights() {
 	glUniform2f(glGetUniformLocation(pointLightShader->GetProgram(), "pixelSize"),
 		1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowHeight());
 
-	for (int x = 0; x < LIGHTNUMS1; ++x) {
-		for (int z = 0; z < LIGHTNUMS1; ++z) {
-			Light & l = lights[(x * LIGHTNUMS1) + z];
+	int numlights = 0;
+
+	if (scene == 1) {
+		numlights = LIGHTNUMS1;
+	}
+	else if (scene == 2) {
+		numlights = LIGHTNUMS2;
+	}
+
+	for (int x = 0; x < numlights; ++x) {
+		for (int z = 0; z < numlights; ++z) {
+			Light & l = lights[(x * numlights) + z];
 			float radius = l.GetRadius();
 
 			Matrix4 tempModelMatrix =

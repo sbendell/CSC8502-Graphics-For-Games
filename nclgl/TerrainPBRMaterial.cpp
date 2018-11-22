@@ -24,23 +24,23 @@ void TerrainPBRMaterial::LoadParameters() {
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
 		"specularTex"), 2);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"metalnessTex"), 3);
+		"rdiffuseTex"), 3);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"rdiffuseTex"), 4);
+		"rbumpTex"), 4);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"rbumpTex"), 5);
+		"rspecularTex"), 5);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"rspecularTex"), 6);
+		"sdiffuseTex"), 6);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"rmetalnessTex"), 7);
+		"sbumpTex"), 7);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"sdiffuseTex"), 8);
+		"sspecularTex"), 8);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"sbumpTex"), 9);
+		"ldiffuseTex"), 9);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"sspecularTex"), 10);
+		"lbumpTex"), 10);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
-		"smetalnessTex"), 11);
+		"lspecularTex"), 11);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
 		"craterTex"), 12);
 	for (int i = 0; i < textureNum; i++)
