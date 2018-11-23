@@ -7,6 +7,7 @@
 #include "../../nclgl/HeightMap.h"
 #include "../../nclgl/Scene.h"
 #include "../../nclgl/OBJmesh.h"
+#include "TextMesh.h"
 #include <algorithm>
 
 #include "../../nclgl/Material.h"
@@ -106,6 +107,10 @@ public:
 
 	void GenerateScreenTexture(GLuint & into, bool depth = false);
 	void SmashTerrain(int x, int y, GLuint texture);
+	void DrawTextOnScreen(const std::string &text, const Vector3 &position, Camera* camera,
+		const float size = 10.0f, const bool perspective = false);
+
+	Font* basicFont;
 
 protected:
 	vector<pair<string, Shader*>> shaders;
@@ -119,4 +124,5 @@ protected:
 
 	vector<Scene*> scenes;
 	int currentScene = 0;
+	float lastFrameFPS;
 };

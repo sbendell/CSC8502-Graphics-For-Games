@@ -30,6 +30,8 @@ public:
 	GLuint GetSkybox() const { return skybox; }
 	void SetSkybox(GLuint val) { skybox = val; }
 
+	Camera* GetCamera() { return camera; }
+
 protected:
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();

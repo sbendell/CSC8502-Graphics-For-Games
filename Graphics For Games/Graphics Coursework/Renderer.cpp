@@ -149,6 +149,9 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	sceneThree->SetSkybox(sThreecubeMap);
 	scenes.push_back(sceneThree);
 
+	basicFont = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
@@ -209,6 +212,8 @@ void Renderer::UpdateScene(float msec) {
 	else {
 		scenes[currentScene]->UpdateScene(msec);
 	}
+
+	lastFrameFPS = 1.0f / msec;
 }
 
 void Renderer::RenderScene() {
@@ -224,6 +229,7 @@ void Renderer::RenderScene() {
 	else {
 		scenes[currentScene]->RenderScene(fullScreenQuad, fullScreenQuad);
 	}
+	DrawTextOnScreen(to_string(lastFrameFPS), Vector3(0, 0, 0), NULL, 1.0f);
 
 	glUseProgram(0);
 	SwapBuffers();
@@ -255,4 +261,40 @@ void Renderer::SmashTerrain(int xPos, int yPos, GLuint texture) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	delete pixels;
+}
+
+void Renderer::DrawTextOnScreen(const std::string &text, const Vector3 &position, Camera* camera,
+	const float size, const bool perspective) {
+	//Create a new temporary TextMesh, using our line of text and our font
+	TextMesh* mesh = new TextMesh(text, *basicFont);
+
+	//This just does simple matrix setup to render in either perspective or
+	//orthographic mode, there's nothing here that's particularly tricky.
+	SetCurrentShader(GetShaderWithName("Texture"));
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glBindTexture(GL_TEXTURE_2D, basicFont->texture);
+	if (perspective) {
+		modelMatrix = Matrix4::Translation(position) * Matrix4::Scale(Vector3(size, size, 1));
+		viewMatrix = camera->GetViewMatrix();
+		projMatrix = Matrix4::Perspective(1.0f, 10000.0f, (float)width / (float)height, 45.0f);
+	}
+	else {
+		//In ortho mode, we subtract the y from the height, so that a height of 0
+		//is at the top left of the screen, which is more intuitive
+		//(for me anyway...)
+		glClear(GL_DEPTH_BUFFER_BIT);
+		modelMatrix = Matrix4::Translation(Vector3(position.x, height - position.y, position.z)) * Matrix4::Scale(Vector3(size, size, 1));
+		viewMatrix.ToIdentity();
+		projMatrix = Matrix4::Orthographic(-1.0f, 1.0f, (float)width, 0.0f, (float)height, 0.0f);
+		textureMatrix.ToIdentity();
+	}
+	//Either way, we update the matrices, and draw the mesh
+	UpdateShaderMatrices();
+	mesh->Draw();
+
+	delete mesh; //Once it's drawn, we don't need it anymore!
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 }
