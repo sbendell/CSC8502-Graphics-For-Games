@@ -80,6 +80,7 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	Shader* combineShader = LoadShader("Combine", "combinevert.glsl", "combinefrag.glsl");
 	Shader* vignetteShader = LoadShader("Vignette Post Process", "TexturedVertex.glsl", "vignettefrag.glsl");
 	Shader* chrabShader = LoadShader("Chrab Post Process", "TexturedVertex.glsl", "Chrabfrag.glsl");
+	Shader* grayscaleShader = LoadShader("Grayscale Post Process", "TexturedVertex.glsl", "grayscalefrag.glsl");
 	Shader* textureShader = LoadShader("Texture", "TexturedVertex.glsl", "TexturedFragment.glsl");
 	Shader* shadowShader = LoadShader("Shadow", "shadowvert.glsl", "shadowfrag.glsl");
 
@@ -229,7 +230,7 @@ void Renderer::RenderScene() {
 	else {
 		scenes[currentScene]->RenderScene(fullScreenQuad, fullScreenQuad);
 	}
-	DrawTextOnScreen(to_string(lastFrameFPS), Vector3(0, 0, 0), NULL, 1.0f);
+	//DrawTextOnScreen(to_string(lastFrameFPS), Vector3(0, 0, 0), NULL, 1.0f);
 
 	glUseProgram(0);
 	SwapBuffers();

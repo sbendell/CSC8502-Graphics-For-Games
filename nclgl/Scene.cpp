@@ -47,7 +47,7 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 		meteor->SetMaterial(renderer->GetMaterialWithName("Meteor"));
 		meteor->SetBoundingRadius(300.0f);
 		meteor->GetTransform().SetTranslation(Vector3(500.0f, 2000.0f, 500.0f));
-		meteor->GetTransform().SetScale(Vector3(100.0f, 100.0f, 100.0f));
+		meteor->GetTransform().SetScale(Vector3(-100.0f, -100.0f, -100.0f));
 		root->AddChild(meteor);
 	}
 	else if (scene == 2) {
@@ -96,7 +96,7 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 				SceneNode* newNode = new SceneNode(meteorMesh);
 				newNode->GetTransform().SetTranslation(Vector3(600.0f * x + 500.0f, 400.0f, 600.0f * z + 500.0f));
 				newNode->SetMaterial(metalMaterials[whichMat]);
-				newNode->GetTransform().SetScale(Vector3(350.0f, 350.0f, 350.0f));
+				newNode->GetTransform().SetScale(Vector3(-350.0f, -350.0f, -350.0f));
 				newNode->SetBoundingRadius(350.0f);
 				root->AddChild(newNode);
 			}
@@ -139,7 +139,7 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 
 		SceneNode* ball = new SceneNode(meteorMesh);
 		ball->GetTransform().SetTranslation(Vector3(3000.0f, 175.0f, 3000.0f));
-		ball->GetTransform().SetScale(Vector3(350.0f, 350.0f, 350.0f));
+		ball->GetTransform().SetScale(Vector3(-350.0f, -350.0f, -350.0f));
 		ball->SetMaterial(renderer->GetMaterialWithName("Metal Scratched"));
 		ball->SetBoundingRadius(350.0f);
 		root->AddChild(ball);
@@ -156,6 +156,7 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 	skyboxShader = renderer->GetShaderWithName("Skybox");
 	vignetteShader = renderer->GetShaderWithName("Vignette Post Process");
 	chrabShader = renderer->GetShaderWithName("Chrab Post Process");
+	grayscaleShader = renderer->GetShaderWithName("Grayscale Post Process");
 	presentShader = renderer->GetShaderWithName("Texture");
 }
 
@@ -306,6 +307,15 @@ void Scene::UpdateScene(float msec) {
 		ballPosition += 0.01f;
 		Vector3 newPos = Vector3(sin(ballPosition) * 1500.0f + 2000.0f, 175.0f, cos(ballPosition) * 1500.0f + 2000.0f);
 		(*ball)->GetTransform().SetTranslation(newPos);
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)) {
+			postProcess = 1;
+		}
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2)) {
+			postProcess = 2;
+		}
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_3)) {
+			postProcess = 3;
+		}
 	}
 	camera->UpdateCamera(msec);
 	frameFrustum.FromMatrix(camera->GetProjectionMatrix()*camera->GetViewMatrix());
@@ -320,7 +330,9 @@ void Scene::RenderScene(Mesh* screen, Mesh* fullScreen) {
 	FillBuffers();
 	DrawPointLights();
 	CombineBuffers(fullScreen);
-	PostProcess(fullScreen);
+	if (scene == 3) {
+		PostProcess(fullScreen);
+	}
 	PresentScene(screen);
 }
 
@@ -676,54 +688,78 @@ void Scene::CombineBuffers(Mesh* screen) {
 }
 
 void Scene::PostProcess(Mesh* screen) {
-	glUseProgram(vignetteShader->GetProgram());
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D, postProcessTex[0], 0);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
 	Matrix4 tempProjMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
 
 	Matrix4 identity;
 	identity.ToIdentity();
+	if (postProcess == 1) {
+		glUseProgram(vignetteShader->GetProgram());
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, postProcessTex[0], 0);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
-		"modelMatrix"), 1, false, (float*)&identity);
-	glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
-		"viewMatrix"), 1, false, (float*)&identity);
-	glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
-		"projMatrix"), 1, false, (float*)&tempProjMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
-		"textureMatrix"), 1, false, (float*)&identity);
+		glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
+			"modelMatrix"), 1, false, (float*)&identity);
+		glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
+			"viewMatrix"), 1, false, (float*)&identity);
+		glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
+			"projMatrix"), 1, false, (float*)&tempProjMatrix);
+		glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
+			"textureMatrix"), 1, false, (float*)&identity);
 
-	glUniform1i(glGetUniformLocation(vignetteShader->GetProgram(), "diffuseTex"), 0);
+		glUniform1i(glGetUniformLocation(vignetteShader->GetProgram(), "diffuseTex"), 0);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
 
-	screen->Draw();
+		screen->Draw();
+	}
+	else if (postProcess == 2) {
+		glUseProgram(chrabShader->GetProgram());
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, postProcessTex[0], 0);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(chrabShader->GetProgram());
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D, postProcessTex[1], 0);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
+			"modelMatrix"), 1, false, (float*)&identity);
+		glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
+			"viewMatrix"), 1, false, (float*)&identity);
+		glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
+			"projMatrix"), 1, false, (float*)&tempProjMatrix);
+		glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
+			"textureMatrix"), 1, false, (float*)&identity);
 
-	glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
-		"modelMatrix"), 1, false, (float*)&identity);
-	glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
-		"viewMatrix"), 1, false, (float*)&identity);
-	glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
-		"projMatrix"), 1, false, (float*)&tempProjMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
-		"textureMatrix"), 1, false, (float*)&identity);
+		glUniform1i(glGetUniformLocation(chrabShader->GetProgram(), "diffuseTex"), 0);
+		glUniform2f(glGetUniformLocation(chrabShader->GetProgram(), "pixelSize"),
+			1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowHeight());
 
-	glUniform1i(glGetUniformLocation(chrabShader->GetProgram(), "diffuseTex"), 0);
-	glUniform2f(glGetUniformLocation(chrabShader->GetProgram(), "pixelSize"),
-		1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowHeight());
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, postProcessTex[0]);
+		screen->Draw();
+	}
+	else if (postProcess == 3) {
+		glUseProgram(grayscaleShader->GetProgram());
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, postProcessTex[0], 0);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	screen->Draw();
+		glUniformMatrix4fv(glGetUniformLocation(grayscaleShader->GetProgram(),
+			"modelMatrix"), 1, false, (float*)&identity);
+		glUniformMatrix4fv(glGetUniformLocation(grayscaleShader->GetProgram(),
+			"viewMatrix"), 1, false, (float*)&identity);
+		glUniformMatrix4fv(glGetUniformLocation(grayscaleShader->GetProgram(),
+			"projMatrix"), 1, false, (float*)&tempProjMatrix);
+		glUniformMatrix4fv(glGetUniformLocation(grayscaleShader->GetProgram(),
+			"textureMatrix"), 1, false, (float*)&identity);
+
+		glUniform1i(glGetUniformLocation(grayscaleShader->GetProgram(), "diffuseTex"), 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
+
+		screen->Draw();
+	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
@@ -749,7 +785,12 @@ void Scene::PresentScene(Mesh* screen) {
 	glUniform1i(glGetUniformLocation(presentShader->GetProgram(), "diffuseTex"), 0);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
+	if (scene == 3){
+		glBindTexture(GL_TEXTURE_2D, postProcessTex[0]);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
+	}
 
 	screen->Draw();
 	glUseProgram(0);

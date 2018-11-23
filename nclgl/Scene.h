@@ -66,6 +66,7 @@ protected:
 	Shader* combineShader;
 	Shader* vignetteShader;
 	Shader* chrabShader;
+	Shader* grayscaleShader;
 	Shader* presentShader;
 
 	Frustum frameFrustum;
@@ -93,4 +94,5 @@ protected:
 	int scene;
 	OBJMesh* meteorMesh;
 	float ballPosition = 0;
+	int postProcess = 1;
 };
