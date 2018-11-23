@@ -317,6 +317,9 @@ void Scene::UpdateScene(float msec) {
 			postProcess = 3;
 		}
 	}
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_0)) {
+		drawShadows = !drawShadows;
+	}
 	camera->UpdateCamera(msec);
 	frameFrustum.FromMatrix(camera->GetProjectionMatrix()*camera->GetViewMatrix());
 	root->Update(msec);
@@ -325,7 +328,9 @@ void Scene::UpdateScene(float msec) {
 void Scene::RenderScene(Mesh* screen, Mesh* fullScreen) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	DrawShadowScene();
+	if (drawShadows) {
+		DrawShadowScene();
+	}
 	DrawSkybox(fullScreen);
 	FillBuffers();
 	DrawPointLights();
@@ -607,6 +612,8 @@ void Scene::DrawPointLights() {
 
 			glUniform1i(glGetUniformLocation(pointLightShader->GetProgram(),
 				"shadowTex"), 20);
+			glUniform1i(glGetUniformLocation(pointLightShader->GetProgram(),
+				"drawShadows"), drawShadows);
 			glActiveTexture(GL_TEXTURE20);
 			glBindTexture(GL_TEXTURE_2D, shadowTex[(x * numlights) + z]);
 

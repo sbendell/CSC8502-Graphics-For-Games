@@ -95,4 +95,5 @@ protected:
 	OBJMesh* meteorMesh;
 	float ballPosition = 0;
 	int postProcess = 1;
+	bool drawShadows = true;
 };

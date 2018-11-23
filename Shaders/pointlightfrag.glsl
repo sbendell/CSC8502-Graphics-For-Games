@@ -7,6 +7,7 @@ uniform sampler2DShadow shadowTex;
 uniform vec2 pixelSize;
 uniform vec3 cameraPos;
 uniform mat4 shadowMatrix;
+uniform bool drawShadows;
 
 uniform float lightRadius;
 uniform float lightBrightness;
@@ -48,6 +49,11 @@ void main (void) {
 	float rFactor = clamp(dot(halfDir , normal), 0.0, 1.0);
 	float sFactor = pow(rFactor, 33.0);
 
-	fragColour [0] = vec4(lightColour.xyz * lambert * atten, 1.0) * lightBrightness * shadow;
+	vec4 finalCol = vec4(lightColour.xyz * lambert * atten, 1.0) * lightBrightness;
+	if (drawShadows){
+		finalCol = finalCol * shadow;
+	}
+	
+	fragColour [0] = finalCol;
 	fragColour [1] = vec4(lightColour.xyz * sFactor * atten * 0.33, 1.0);
 }
