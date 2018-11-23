@@ -17,6 +17,9 @@ PBRMaterial::~PBRMaterial()
 
 void PBRMaterial::LoadParameters() {
 	glUseProgram(shader->GetProgram());
+	glUniform4f(glGetUniformLocation(shader->GetProgram(),
+		"tintColour"), colour.x, colour.y, colour.z, colour.w);
+
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
 		"diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),

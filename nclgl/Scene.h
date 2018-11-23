@@ -1,15 +1,17 @@
 #pragma once
 
 #include "../Graphics For Games/Graphics Coursework/Renderer.h"
-#include "../../nclgl/Camera.h"
-#include "../../nclgl/SceneNode.h"
-#include "../../nclgl/Frustum.h"
-#include "../../nclgl/HeightMap.h"
-#include "../../nclgl/Material.h"
+#include "Camera.h"
+#include "SceneNode.h"
+#include "Frustum.h"
+#include "HeightMap.h"
+#include "Material.h"
+#include "MD5Node.h"
+#include "MD5FileData.h"
 #include <algorithm>
 
 #define LIGHTNUMS1 2
-#define LIGHTNUMS2 8
+#define LIGHTNUMS2 6
 #define SHADOWSIZE 2048
 
 class Renderer;
@@ -87,4 +89,5 @@ protected:
 
 	int scene;
 	OBJMesh* meteorMesh;
+	float ballPosition = 0;
 };

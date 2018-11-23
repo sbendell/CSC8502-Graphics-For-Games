@@ -118,4 +118,5 @@ protected:
 	OBJMesh* sphere;
 
 	vector<Scene*> scenes;
+	int currentScene = 0;
 };

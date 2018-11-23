@@ -20,28 +20,58 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		LoadTexture("Meteor1 Specular", "Lava_001_SD/Lava_001_SPEC.png"),
 		LoadTexture("Crater", "Crater.png")
 	};
-
 	unsigned int* meteortexes = new unsigned int[4]{
 		LoadTexture("Meteor2 Albedo", "Lava_001_SD/Lava_001_COLOR.png"),
 		LoadTexture("Meteor2 Normal", "Lava_001_SD/Lava_001_NORM.png"),
 		LoadTexture("Meteor2 Specular", "Lava_001_SD/Lava_001_SPEC.png"),
-		LoadTexture("Meteor2 Metalness", "Lava_001_SD/Lava_001_SPEC.png")
+		LoadTexture("Meteor2 Metalness", "black.png")
 	};
-
 	unsigned int* shinymetaltexes = new unsigned int[4]{
 		LoadTexture("Metal1 Albedo", "Crater.png"),
 		LoadTexture("Metal1 Normal", "Crater.png"),
 		LoadTexture("Metal1 Specular", "Crater.png"),
 		LoadTexture("Metal1 Metalness", "Crater.png")
 	};
+	unsigned int* metaldiamondtexes = new unsigned int[4]{
+		LoadTexture("Metal2 Albedo", "Metal_Diamond_001_SD/Metal_Diamond_001_COLOR.jpg"),
+		LoadTexture("Metal2 Normal", "Metal_Diamond_001_SD/Metal_Diamond_001_NORM.jpg"),
+		LoadTexture("Metal2 Specular", "Metal_Diamond_001_SD/Metal_Diamond_001_ROUGH.jpg"),
+		LoadTexture("Metal2 Metalness", "Metal_Diamond_001_SD/Metal_Diamond_001_ROUGH.jpg")
+	};
+	unsigned int* metalscalestexes = new unsigned int[4]{
+		LoadTexture("Metal3 Albedo", "Metal_Scales_001_SD/Scales_001_COLOR.jpg"),
+		LoadTexture("Metal3 Normal", "Metal_Scales_001_SD/Scales_001_NORM.jpg"),
+		LoadTexture("Metal3 Specular", "Metal_Scales_001_SD/Scales_001_ROUGH.jpg"),
+		LoadTexture("Metal3 Metalness", "Metal_Scales_001_SD/Scales_001_ROUGH.jpg")
+	};
+	unsigned int* metalscratchedtexes = new unsigned int[4]{
+		LoadTexture("Metal4 Albedo", "Metal_scratched_005_SD/Metal_scratched_005_COLOR.jpg"),
+		LoadTexture("Metal4 Normal", "Metal_scratched_005_SD/Metal_scratched_005_NRM.jpg"),
+		LoadTexture("Metal4 Specular", "Metal_scratched_005_SD/Metal_scratched_005_SPEC.jpg"),
+		LoadTexture("Metal4 Metalness", "Metal_scratched_005_SD/Metal_scratched_005_SPEC.jpg")
+	};
+	unsigned int* tilestexes = new unsigned int[4]{
+		LoadTexture("Tiles1 Albedo", "Tiles_012_SD/Tiles_012_COLOR.jpg"),
+		LoadTexture("Tiles1 Normal", "Tiles_012_SD/Tiles_012_NRM.jpg"),
+		LoadTexture("Tiles1 Specular", "Tiles_012_SD/Tiles_012_ROUGH.jpg"),
+		LoadTexture("Tiles1 Metalness", "Tiles_012_SD/Tiles_012_COLOR.jpg")
+	};
+	unsigned int* bricktexes = new unsigned int[4]{
+		LoadTexture("Brick1 Albedo", "Brick_wall_007_SD/Brick_wall_007_COLOR.jpg"),
+		LoadTexture("Brick1 Normal", "Brick_wall_007_SD/Brick_wall_007_NRM.jpg"),
+		LoadTexture("Brick1 Specular", "Brick_wall_007_SD/Brick_wall_007_SPEC.jpg"),
+		LoadTexture("Brick1 Metalness", "Brick_wall_007_SD/Brick_wall_007_SPEC.jpg")
+	};
 
 	unsigned int sOnecubeMap = LoadCubeMap("Glacier", "hw_glacier/glacier_ft.tga", "hw_glacier/glacier_bk.tga",
 		"hw_glacier/glacier_up.tga", "hw_glacier/glacier_dn.tga",
 		"hw_glacier/glacier_rt.tga", "hw_glacier/glacier_lf.tga");
-
 	unsigned int sTwocubeMap = LoadCubeMap("Midnight", "mp_midnight/midnight-silence_ft.tga", "mp_midnight/midnight-silence_bk.tga",
 		"mp_midnight/midnight-silence_up.tga", "mp_midnight/midnight-silence_dn.tga",
 		"mp_midnight/midnight-silence_rt.tga", "mp_midnight/midnight-silence_lf.tga");
+	unsigned int sThreecubeMap = LoadCubeMap("Nevada", "ely_nevada/nevada_ft.tga", "ely_nevada/nevada_bk.tga",
+		"ely_nevada/nevada_up.tga", "ely_nevada/nevada_dn.tga",
+		"ely_nevada/nevada_rt.tga", "ely_nevada/nevada_lf.tga");
 
 	Shader* pbrShader = LoadShader("PBR", "pbrvertex.glsl", "pbrfrag.glsl");
 	Shader* terrainShader = LoadShader("Terrain", "terrainpbrvert.glsl", "terrainpbrfrag.glsl");
@@ -58,6 +88,16 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 		meteortexes, 4, PBR);
 	Material* shinyMetalMaterial = LoadMaterial("Shiny Metal", pbrShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
 		shinymetaltexes, 4, PBR);
+	Material* metalDiamondMaterial = LoadMaterial("Metal Diamond", pbrShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+		metaldiamondtexes, 4, PBR);
+	Material* metalScalesMaterial = LoadMaterial("Metal Scales", pbrShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+		metalscalestexes, 4, PBR);
+	Material* metalScratchedMaterial = LoadMaterial("Metal Scratched", pbrShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+		metalscratchedtexes, 4, PBR);
+	Material* tilesMaterial = LoadMaterial("Tiles", pbrShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+		tilestexes, 4, PBR);
+	Material* brickMaterial = LoadMaterial("Brick", pbrShader, Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+		bricktexes, 4, PBR);
 
 	for (int i = 0; i < shaders.size(); i++)
 	{
@@ -104,6 +144,10 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	sceneTwo->SetSkybox(sTwocubeMap);
 	scenes.push_back(sceneTwo);
 
+	Scene* sceneThree = new Scene(this, width, height, sphere, 3);
+	sceneThree->SetSkybox(sThreecubeMap);
+	scenes.push_back(sceneThree);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
@@ -142,22 +186,43 @@ void Renderer::GenerateScreenTexture(GLuint & into, bool depth) {
 }
 
 void Renderer::UpdateScene(float msec) {
-	/*for (int i = 0; i < scenes.size(); i++)
-	{
-		scenes[i]->UpdateScene(msec);
-	}*/
-	scenes[1]->UpdateScene(msec);
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_RIGHT)) {
+		currentScene++;
+		if (currentScene > scenes.size()) {
+			currentScene = 0;
+		}
+	}
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_LEFT)) {
+		currentScene--;
+		if (currentScene < 0) {
+			currentScene = scenes.size();
+		}
+	}
+	if (currentScene == scenes.size()) {
+		for (int i = 0; i < scenes.size(); i++)
+		{
+			scenes[i]->UpdateScene(msec);
+		}
+	}
+	else {
+		scenes[currentScene]->UpdateScene(msec);
+	}
 }
 
 void Renderer::RenderScene() {
 	SetCurrentShader(shaders[0].second);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	/*for (int i = 0; i < 1; i++)
-	{
-		scenes[0]->RenderScene(fullScreenQuad, fullScreenQuad);
-	}*/
-	scenes[1]->RenderScene(fullScreenQuad, fullScreenQuad);
+	if (currentScene == scenes.size()) {
+		for (int i = 0; i < scenes.size(); i++)
+		{
+			scenes[i]->RenderScene(&screenQuad[i], fullScreenQuad);
+		}
+	}
+	else {
+		scenes[currentScene]->RenderScene(fullScreenQuad, fullScreenQuad);
+	}
 
 	glUseProgram(0);
 	SwapBuffers();

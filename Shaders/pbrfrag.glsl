@@ -7,6 +7,7 @@ uniform sampler2D metalnessTex;
 
 uniform samplerCube cubeTex;
 uniform vec3 cameraPos;
+uniform vec4 tintColour;
 
 in Vertex {
 	vec4 colour;
@@ -28,7 +29,7 @@ void main (void) {
 	vec4 reflection = texture(cubeTex, reflect(incident, normalize(IN.normal).xyz));
 
 	
-	fragColour [0] = mix(texture2D(diffuseTex , IN.texCoord), vec4((reflection.xyz * metalness.xyz), 1.0), metalness.r);
+	fragColour [0] = mix(texture2D(diffuseTex , IN.texCoord), vec4((reflection.xyz * metalness.xyz), 1.0), metalness.r) * tintColour;
 	fragColour [1] = vec4(normal.xyz * 0.5 + 0.5, 1.0);
 	fragColour [2] = texture2D(specularTex , IN.texCoord);
 }

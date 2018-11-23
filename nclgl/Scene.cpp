@@ -6,6 +6,11 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 	lightSphere = sphere;
 	this->scene = scene;
 
+	meteorMesh = new OBJMesh();
+	if (!meteorMesh->LoadOBJMesh(MESHDIR "sphere.obj")) {
+		return;
+	}
+
 	if (scene == 1) {
 		camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
 			1.0f, 1.0f, 10000.0f, width, height, 45.0f);
@@ -38,16 +43,11 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 
 		GenBuffers(LIGHTNUMS1);
 
-		meteorMesh = new OBJMesh();
-		if (!meteorMesh->LoadOBJMesh(MESHDIR "sphere.obj")) {
-			return;
-		}
-
 		SceneNode* meteor = new SceneNode(meteorMesh);
 		meteor->SetMaterial(renderer->GetMaterialWithName("Meteor"));
 		meteor->SetBoundingRadius(300.0f);
 		meteor->GetTransform().SetTranslation(Vector3(500.0f, 2000.0f, 500.0f));
-		meteor->GetTransform().SetScale(Vector3(-100.0f, -100.0f, -100.0f));
+		meteor->GetTransform().SetScale(Vector3(100.0f, 100.0f, 100.0f));
 		root->AddChild(meteor);
 	}
 	else if (scene == 2) {
@@ -55,6 +55,11 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 			1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
 		heightMap = new HeightMap(TEXTUREDIR"flat.raw");
+
+		SceneNode* terrain = new SceneNode(heightMap);
+		terrain->SetMaterial(renderer->GetMaterialWithName("Brick"));
+		terrain->SetBoundingRadius(100000.0f);
+		root->AddChild(terrain);
 
 		float xPos = (RAW_WIDTH * HEIGHTMAP_X) / LIGHTNUMS2;
 		float zPos = (RAW_HEIGHT * HEIGHTMAP_Z) / LIGHTNUMS2;
@@ -69,8 +74,31 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 				float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 				float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 				float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-				lights[x * LIGHTNUMS2 + z] = Light(Vector3(xPos * x, 100.0f, zPos * z), Vector4(r, g, b, 1.0f),
-					500.0f, 3.0f);
+				lights[x * LIGHTNUMS2 + z] = Light(Vector3(xPos * x, 600.0f, zPos * z), Vector4(r, g, b, 1.0f),
+					1000.0f, 3.0f);
+			}
+		}
+
+		for (int x = 0; x < 6; x++)
+		{
+			for (int z = 0; z < 6; z++)
+			{
+				Material* metalMaterials[] = { renderer->GetMaterialWithName("Shiny Metal"),
+					renderer->GetMaterialWithName("Metal Diamond"),
+					renderer->GetMaterialWithName("Metal Scales"),
+					renderer->GetMaterialWithName("Metal Scratched"),
+					renderer->GetMaterialWithName("Tiles"),
+					renderer->GetMaterialWithName("Brick")
+				};
+
+				int whichMat = rand() % 6;
+
+				SceneNode* newNode = new SceneNode(meteorMesh);
+				newNode->GetTransform().SetTranslation(Vector3(600.0f * x + 500.0f, 400.0f, 600.0f * z + 500.0f));
+				newNode->SetMaterial(metalMaterials[whichMat]);
+				newNode->GetTransform().SetScale(Vector3(350.0f, 350.0f, 350.0f));
+				newNode->SetBoundingRadius(350.0f);
+				root->AddChild(newNode);
 			}
 		}
 
@@ -79,11 +107,48 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 		shadowMatrixes = new Matrix4[LIGHTNUMS2 * LIGHTNUMS2];
 
 		GenBuffers(LIGHTNUMS2);
+	}
+	else if (scene == 3) {
+		camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
+			1.0f, 1.0f, 10000.0f, width, height, 45.0f);
+
+		heightMap = new HeightMap(TEXTUREDIR"flat.raw");
 
 		SceneNode* terrain = new SceneNode(heightMap);
-		terrain->SetMaterial(renderer->GetMaterialWithName("Shiny Metal"));
+		terrain->SetMaterial(renderer->GetMaterialWithName("Meteor"));
 		terrain->SetBoundingRadius(100000.0f);
 		root->AddChild(terrain);
+
+		lights = new Light[LIGHTNUMS1 * LIGHTNUMS1];
+		shadowTex = new GLuint[LIGHTNUMS1 * LIGHTNUMS1];
+
+		float xPos = (RAW_WIDTH * HEIGHTMAP_X);
+		float zPos = (RAW_HEIGHT * HEIGHTMAP_Z);
+
+		lights = new Light[LIGHTNUMS1 * LIGHTNUMS1];
+		shadowTex = new GLuint[LIGHTNUMS1 * LIGHTNUMS1];
+
+		for (int x = 0; x < LIGHTNUMS1; x++)
+		{
+			for (int z = 0; z < LIGHTNUMS1; z++)
+			{
+				lights[x * LIGHTNUMS1 + z] = Light(Vector3(xPos * x, 1000.0f, zPos * z), Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+					4000.0f, 3.0f);
+			}
+		}
+
+		SceneNode* ball = new SceneNode(meteorMesh);
+		ball->GetTransform().SetTranslation(Vector3(3000.0f, 175.0f, 3000.0f));
+		ball->GetTransform().SetScale(Vector3(350.0f, 350.0f, 350.0f));
+		ball->SetMaterial(renderer->GetMaterialWithName("Metal Scratched"));
+		ball->SetBoundingRadius(350.0f);
+		root->AddChild(ball);
+
+		ambientColour = Vector3(0.2f, 0.2f, 0.2f);
+
+		shadowMatrixes = new Matrix4[LIGHTNUMS1 * LIGHTNUMS1];
+
+		GenBuffers(LIGHTNUMS1);
 	}
 	pointLightShader = renderer->GetShaderWithName("Point Light");
 	shadowShader = renderer->GetShaderWithName("Shadow");
@@ -115,9 +180,7 @@ Scene::~Scene()
 	glDeleteFramebuffers(1, &postProcessFBO);
 	glDeleteFramebuffers(1, &shadowFBO);
 
-	if (scene == 1) {
-		delete meteorMesh;
-	}
+	delete meteorMesh;
 }
 
 void Scene::GenBuffers(int lights) {
@@ -222,8 +285,8 @@ void Scene::UpdateScene(float msec) {
 		meteor++;
 
 		if ((*meteor)->GetTransform().GetTranslation().y < -500) {
-			int newX = rand() % RAW_WIDTH * HEIGHTMAP_X;
-			int newY = rand() % RAW_WIDTH * HEIGHTMAP_X;
+			int newX = rand() % RAW_WIDTH * 12 + 500;
+			int newY = rand() % RAW_WIDTH * 12 + 500;
 			(*meteor)->GetTransform().SetTranslation(Vector3(newX,
 				2000, newY));
 		}
@@ -235,6 +298,13 @@ void Scene::UpdateScene(float msec) {
 		(*meteor)->GetTransform().SetTranslation(Vector3((*meteor)->GetTransform().GetTranslation().x,
 			(*meteor)->GetTransform().GetTranslation().y - 10,
 			(*meteor)->GetTransform().GetTranslation().z));
+	}
+	if (scene == 3) {
+		auto ball = root->GetChildIteratorStart();
+		ball++;
+		ballPosition += 0.01f;
+		Vector3 newPos = Vector3(sin(ballPosition) * 1500.0f + 2000.0f, 175.0f, cos(ballPosition) * 1500.0f + 2000.0f);
+		(*ball)->GetTransform().SetTranslation(newPos);
 	}
 	camera->UpdateCamera(msec);
 	frameFrustum.FromMatrix(camera->GetProjectionMatrix()*camera->GetViewMatrix());
@@ -341,7 +411,10 @@ void Scene::DrawShadowScene() {
 		numlights = LIGHTNUMS1;
 	}
 	else if (scene == 2) {
-		LIGHTNUMS2;
+		numlights = LIGHTNUMS2;
+	}
+	else if (scene == 3) {
+		numlights = LIGHTNUMS1;
 	}
 	for (int i = 0; i < numlights * numlights; i++)
 	{
@@ -459,15 +532,40 @@ void Scene::DrawPointLights() {
 	else if (scene == 2) {
 		numlights = LIGHTNUMS2;
 	}
+	else if (scene == 3) {
+		numlights = LIGHTNUMS1;
+	}
 
 	for (int x = 0; x < numlights; ++x) {
 		for (int z = 0; z < numlights; ++z) {
 			Light & l = lights[(x * numlights) + z];
 			float radius = l.GetRadius();
 
-			Matrix4 tempModelMatrix =
-				Matrix4::Translation(l.GetPosition()) *
-				Matrix4::Scale(Vector3(radius, radius, radius));
+			Matrix4 tempModelMatrix;
+
+			if (scene == 1) {
+				tempModelMatrix =
+					Matrix4::Translation(l.GetPosition()) *
+					Matrix4::Scale(Vector3(radius, radius, radius));
+			}
+			else if (scene == 2) {
+				Vector3 translate = Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500,
+					(RAW_HEIGHT * HEIGHTMAP_Z / 2.0f));
+				Matrix4 pushMatrix = Matrix4::Translation(translate);
+				Matrix4 popMatrix = Matrix4::Translation(-translate);
+
+				tempModelMatrix =
+					pushMatrix *
+					Matrix4::Rotation(1.0f, Vector3(0, 1, 0)) *
+					popMatrix *
+					Matrix4::Translation(l.GetPosition()) *
+					Matrix4::Scale(Vector3(radius, radius, radius));
+			}
+			else if (scene == 3) {
+				tempModelMatrix =
+					Matrix4::Translation(l.GetPosition()) *
+					Matrix4::Scale(Vector3(radius, radius, radius));
+			}
 
 			l.SetPosition(tempModelMatrix.GetPositionVector());
 
@@ -491,6 +589,13 @@ void Scene::DrawPointLights() {
 				"projMatrix"), 1, false, (float*)&camera->GetProjectionMatrix());
 			glUniformMatrix4fv(glGetUniformLocation(pointLightShader->GetProgram(),
 				"textureMatrix"), 1, false, (float*)&identity);
+			glUniformMatrix4fv(glGetUniformLocation(pointLightShader->GetProgram(),
+				"shadowMatrix"), 1, false, (float*)&shadowMatrixes[(x * numlights) + z]);
+
+			glUniform1i(glGetUniformLocation(pointLightShader->GetProgram(),
+				"shadowTex"), 20);
+			glActiveTexture(GL_TEXTURE20);
+			glBindTexture(GL_TEXTURE_2D, shadowTex[(x * numlights) + z]);
 
 			float dist = (l.GetPosition() - camera->GetPosition()).Length();
 			if (dist < radius) {// camera is inside the light volume !

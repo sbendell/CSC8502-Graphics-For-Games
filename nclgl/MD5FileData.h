@@ -221,7 +221,6 @@ public:
 
 	static const Matrix4 inverseConversionMatrix;
 
-
 protected:	
 	/*
 	Helper function used by LoadMD5Mesh to load in the joints for this mesh
