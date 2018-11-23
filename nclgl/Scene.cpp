@@ -154,7 +154,8 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 	shadowShader = renderer->GetShaderWithName("Shadow");
 	combineShader = renderer->GetShaderWithName("Combine");
 	skyboxShader = renderer->GetShaderWithName("Skybox");
-	postProcessShader = renderer->GetShaderWithName("Blur Post Process");
+	vignetteShader = renderer->GetShaderWithName("Vignette Post Process");
+	chrabShader = renderer->GetShaderWithName("Chrab Post Process");
 	presentShader = renderer->GetShaderWithName("Texture");
 }
 
@@ -675,7 +676,7 @@ void Scene::CombineBuffers(Mesh* screen) {
 }
 
 void Scene::PostProcess(Mesh* screen) {
-	glUseProgram(postProcessShader->GetProgram());
+	glUseProgram(vignetteShader->GetProgram());
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, postProcessTex[0], 0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -685,23 +686,42 @@ void Scene::PostProcess(Mesh* screen) {
 	Matrix4 identity;
 	identity.ToIdentity();
 
-	glUniformMatrix4fv(glGetUniformLocation(postProcessShader->GetProgram(),
+	glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
 		"modelMatrix"), 1, false, (float*)&identity);
-	glUniformMatrix4fv(glGetUniformLocation(postProcessShader->GetProgram(),
+	glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
 		"viewMatrix"), 1, false, (float*)&identity);
-	glUniformMatrix4fv(glGetUniformLocation(postProcessShader->GetProgram(),
+	glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
 		"projMatrix"), 1, false, (float*)&tempProjMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(postProcessShader->GetProgram(),
+	glUniformMatrix4fv(glGetUniformLocation(vignetteShader->GetProgram(),
 		"textureMatrix"), 1, false, (float*)&identity);
 
-	glUniform1i(glGetUniformLocation(postProcessShader->GetProgram(), "diffuseTex"), 0);
-	glUniform2f(glGetUniformLocation(postProcessShader->GetProgram(),
-		"pixelSize"), 1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowHeight());
-	glUniform1i(glGetUniformLocation(postProcessShader->GetProgram(),
-		"isVertical"), 0);
+	glUniform1i(glGetUniformLocation(vignetteShader->GetProgram(), "diffuseTex"), 0);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
+
+	screen->Draw();
+
+	glUseProgram(chrabShader->GetProgram());
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, postProcessTex[1], 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
+		"modelMatrix"), 1, false, (float*)&identity);
+	glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
+		"viewMatrix"), 1, false, (float*)&identity);
+	glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
+		"projMatrix"), 1, false, (float*)&tempProjMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(chrabShader->GetProgram(),
+		"textureMatrix"), 1, false, (float*)&identity);
+
+	glUniform1i(glGetUniformLocation(chrabShader->GetProgram(), "diffuseTex"), 0);
+	glUniform2f(glGetUniformLocation(chrabShader->GetProgram(), "pixelSize"),
+		1.0f / camera->GetWindowWidth(), 1.0f / camera->GetWindowHeight());
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, postProcessTex[0]);
 
 	screen->Draw();
 
@@ -726,10 +746,10 @@ void Scene::PresentScene(Mesh* screen) {
 		"projMatrix"), 1, false, (float*)&tempProjMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(presentShader->GetProgram(),
 		"textureMatrix"), 1, false, (float*)&identity);
-	glUniform1i(glGetUniformLocation(postProcessShader->GetProgram(), "diffuseTex"), 0);
+	glUniform1i(glGetUniformLocation(presentShader->GetProgram(), "diffuseTex"), 0);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, postProcessTex[0]);
+	glBindTexture(GL_TEXTURE_2D, postProcessTex[1]);
 
 	screen->Draw();
 

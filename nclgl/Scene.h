@@ -62,7 +62,8 @@ protected:
 
 	Shader* shadowShader;
 	Shader* combineShader;
-	Shader* postProcessShader;
+	Shader* vignetteShader;
+	Shader* chrabShader;
 	Shader* presentShader;
 
 	Frustum frameFrustum;

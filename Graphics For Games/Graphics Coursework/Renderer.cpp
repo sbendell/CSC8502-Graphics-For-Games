@@ -78,7 +78,8 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	Shader* pointLightShader = LoadShader("Point Light", "pointlightvert.glsl", "pointlightfrag.glsl");
 	Shader* skyboxShader = LoadShader("Skybox", "skyboxVertex.glsl", "skyboxFragment2.glsl");
 	Shader* combineShader = LoadShader("Combine", "combinevert.glsl", "combinefrag.glsl");
-	Shader* blurShader = LoadShader("Blur Post Process", "TexturedVertex.glsl", "processfrag.glsl");
+	Shader* vignetteShader = LoadShader("Vignette Post Process", "TexturedVertex.glsl", "vignettefrag.glsl");
+	Shader* chrabShader = LoadShader("Chrab Post Process", "TexturedVertex.glsl", "Chrabfrag.glsl");
 	Shader* textureShader = LoadShader("Texture", "TexturedVertex.glsl", "TexturedFragment.glsl");
 	Shader* shadowShader = LoadShader("Shadow", "shadowvert.glsl", "shadowfrag.glsl");
 
