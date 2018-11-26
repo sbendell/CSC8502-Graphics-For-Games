@@ -1,5 +1,8 @@
 #pragma once
 #include "../../nclgl/OGLRenderer.h"
+#include "../../nclgl/Material.h"
+
+class Material;
 
 enum MeshBuffer {
 	VERTEX_BUFFER, COLOUR_BUFFER,
@@ -17,6 +20,7 @@ public:
 	virtual void Draw();
 	static Mesh* GenerateTriangle();
 	static Mesh* GenerateQuad();
+	static Mesh* GenerateScreenQuad(float startX, float startY, float endX, float endY);
 	static Mesh* GenerateCube();
 
 	void SetTexture(GLuint tex) { texture = tex; }

@@ -90,6 +90,38 @@ Mesh* Mesh::GenerateQuad() {
 	return m;
 }
 
+Mesh* Mesh::GenerateScreenQuad(float startX, float startY, float endX, float endY) {
+	Mesh* m = new Mesh();
+	m->numVertices = 4;
+	m->type = GL_TRIANGLE_STRIP;
+
+	m->vertices = new Vector3[m->numVertices];
+	m->vertices[0] = Vector3(startX, startY, 0.0f);
+	m->vertices[1] = Vector3(startX, endY, 0.0f);
+	m->vertices[2] = Vector3(endX, startY, 0.0f);
+	m->vertices[3] = Vector3(endX, endY, 0.0f);
+
+	m->textureCoords = new Vector2[m->numVertices];
+	m->textureCoords[0] = Vector2(0.0f, 1.0f);
+	m->textureCoords[1] = Vector2(0.0f, 0.0f);
+	m->textureCoords[2] = Vector2(1.0f, 1.0f);
+	m->textureCoords[3] = Vector2(1.0f, 0.0f);
+
+	m->colours = new Vector4[m->numVertices];
+	m->normals = new Vector3[m->numVertices];
+	m->tangents = new Vector3[m->numVertices];
+
+	for (int i = 0; i < m->numVertices; i++)
+	{
+		m->colours[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+		m->normals[i] = Vector3(0.0f, 0.0f, -1.0f);
+		m->tangents[i] = Vector3(1.0f, 0.0f, 0.0f);
+	}
+
+	m->BufferData();
+	return m;
+}
+
 Mesh* Mesh::GenerateCube() {
 	Mesh* m = new Mesh();
 	m->numVertices = 14;
@@ -264,12 +296,7 @@ Vector3 Mesh::GenerateTangent(const Vector3 &a, const Vector3 &b,
 
 
 void Mesh::Draw() {
-	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(arrayObject);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, bumpTexture);
 
 	if (bufferObject[INDEX_BUFFER]) {
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
@@ -278,5 +305,4 @@ void Mesh::Draw() {
 		glDrawArrays(type, 0, numVertices);
 	}
 	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 }

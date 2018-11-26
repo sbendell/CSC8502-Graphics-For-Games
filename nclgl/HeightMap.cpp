@@ -100,29 +100,3 @@ void HeightMap::SmashTerrain(int xPos, int yPos) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 }
-
-void HeightMap::Draw() {
-	glActiveTexture(GL_TEXTURE0);
-	glBindVertexArray(arrayObject);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, craterTex);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, bumpTexture);
-
-	if (bufferObject[INDEX_BUFFER]) {
-		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
-	}
-	else {
-		glDrawArrays(type, 0, numVertices);
-	}
-	glBindVertexArray(0);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}

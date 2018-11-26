@@ -24,23 +24,37 @@ public:
 		pitch	= 0.0f;
 		roll = 0.0f;
 		speed = 0.1f;
+
+		windowWidth = 800;
+		windowHeight = 600;
+
+		projectionMatrix = Matrix4::Perspective(1.0f, 10000.0f,
+			(float)800 / (float)600, 45.0f);
 	};
 
-	Camera(float pitch, float yaw, float roll, Vector3 position, float speed){
-		this->pitch		= pitch;
-		this->yaw		= yaw;
+	Camera(float pitch, float yaw, float roll, Vector3 position, float speed, float nearPlane,
+		float farPlane, int windowWidth, int windowHeight, float fov) {
+		this->pitch = pitch;
+		this->yaw = yaw;
 		this->roll = roll;
-		this->position	= position;
+		this->position = position;
 		this->speed = speed;
+		this->nearPlane = nearPlane;
+		this->farPlane = farPlane;
+		this->fov = fov;
+		this->windowWidth = windowWidth;
+		this->windowHeight = windowHeight;
+
+		BuildProjectionMatrix();
 	}
 
 	~Camera(void){};
 
 	void UpdateCamera(float msec = 10.0f);
 
-	//Builds a view matrix for the current camera variables, suitable for sending straight
-	//to a vertex shader (i.e it's already an 'inverse camera matrix').
-	Matrix4 BuildViewMatrix();
+	Matrix4 GetViewMatrix() const { return viewMatrix; }
+
+	Matrix4 GetProjectionMatrix() const { return projectionMatrix; }
 
 	//Gets position in world space
 	Vector3 GetPosition() const { return position;}
@@ -58,17 +72,50 @@ public:
 	void	SetPitch(float p) {pitch = p;}
 
 	float GetRoll() const { return roll; }
-
 	void SetRoll(float r) { roll = r; }
 
 	float GetSpeed() const { return speed; }
-
 	void SetSpeed(float s) { speed = s; }
 
+	float GetNearPlane() const { return nearPlane; }
+	void SetNearPlane(float nearPl) {
+		nearPlane = nearPl;
+		BuildProjectionMatrix();
+	}
+
+	float GetFarPlane() const { return farPlane; }
+	void SetFarPlane(float farPl) {
+		farPlane = farPl;
+		BuildProjectionMatrix();
+	}
+
+	float GetFOV() const { return fov; }
+	void SetFOV(float fOV) {
+		fov = fOV;
+		BuildProjectionMatrix();
+	}
+
+	int GetWindowWidth() const { return windowWidth; }
+	int GetWindowHeight() const { return windowHeight; }
+
 protected:
+	//Builds a view matrix for the current camera variables, suitable for sending straight
+	//to a vertex shader (i.e it's already an 'inverse camera matrix').
+	void BuildViewMatrix();
+	void BuildProjectionMatrix();
+
 	float	yaw;
 	float	pitch;
 	float roll;
 	Vector3 position;
 	float speed;
+	float nearPlane;
+	float farPlane;
+	float fov;
+
+	int windowWidth;
+	int windowHeight;
+
+	Matrix4 viewMatrix;
+	Matrix4 projectionMatrix;
 };

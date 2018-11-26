@@ -40,7 +40,7 @@ void	MD5Node::Update(float msec) {
 		if (rootMotion) {
 			if (currentAnimFrame == 1)
 			{
-				transform = transform + currentSkeleton.joints[0].transform;
+				transform.SetLocalMatrix(transform.GetWorldMatrix() + currentSkeleton.joints[0].transform);
 			}
 		}
 		currentAnim->TransformSkeleton(currentSkeleton,currentAnimFrame-1);
@@ -64,7 +64,7 @@ We want to reset all of the animation details
 	currentAnim			= sourceData.GetAnim(name);
 }
 
-void	MD5Node::Draw(const OGLRenderer &r) {
+void	MD5Node::Draw(const OGLRenderer &r, Material& mat) {
 	MD5Mesh*m = (MD5Mesh*)mesh;
 
 	/*

@@ -2,9 +2,10 @@
 
 #include "../../NCLGL/window.h"
 #include "Renderer.h"
+#include <random>
 
 int main(char* c, int args[]) {
-	Window w("My First OpenGL 3 Triangle!", 800, 600, false);
+	Window w("My First OpenGL 3 Triangle!", 1920, 1200, true);
 
 	if (!w.HasInitialised()) {
 		return -1;
@@ -15,7 +16,10 @@ int main(char* c, int args[]) {
 		return -1;
 	}
 
+	w.LockMouseToWindow(true);
+
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)) {
+		renderer.UpdateScene(w.GetTimer()->GetTimedMS());
 		renderer.RenderScene();
 	}
 
