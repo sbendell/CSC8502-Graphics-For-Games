@@ -204,6 +204,9 @@ void Renderer::UpdateScene(float msec) {
 			currentScene = scenes.size();
 		}
 	}
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P)) {
+		paused = !paused;
+	}
 	if (currentScene == scenes.size()) {
 		for (int i = 0; i < scenes.size(); i++)
 		{
@@ -213,7 +216,16 @@ void Renderer::UpdateScene(float msec) {
 	else {
 		scenes[currentScene]->UpdateScene(msec);
 	}
-
+	if (!paused) {
+		timer++;
+		if (timer > 600) {
+			currentScene++;
+			if (currentScene > scenes.size()) {
+				currentScene = 0;
+			}
+			timer = 0;
+		}
+	}
 	lastFrameFPS = 1.0f / msec;
 }
 
@@ -230,7 +242,8 @@ void Renderer::RenderScene() {
 	else {
 		scenes[currentScene]->RenderScene(fullScreenQuad, fullScreenQuad);
 	}
-	//DrawTextOnScreen(to_string(lastFrameFPS), Vector3(0, 0, 0), NULL, 1.0f);
+	//Doesn't render to correct part of the screen
+	//DrawTextOnScreen("Hello World", Vector3(0, 0, 0), NULL, 1.0f);
 
 	glUseProgram(0);
 	SwapBuffers();
@@ -273,8 +286,10 @@ void Renderer::DrawTextOnScreen(const std::string &text, const Vector3 &position
 	//orthographic mode, there's nothing here that's particularly tricky.
 	SetCurrentShader(GetShaderWithName("Texture"));
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
-	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glBindTexture(GL_TEXTURE_2D, basicFont->texture);
 	if (perspective) {
 		modelMatrix = Matrix4::Translation(position) * Matrix4::Scale(Vector3(size, size, 1));
@@ -296,6 +311,8 @@ void Renderer::DrawTextOnScreen(const std::string &text, const Vector3 &position
 	mesh->Draw();
 
 	delete mesh; //Once it's drawn, we don't need it anymore!
-	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }

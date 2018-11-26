@@ -5,7 +5,7 @@
 #include <random>
 
 int main(char* c, int args[]) {
-	Window w("My First OpenGL 3 Triangle!", 1080, 720, false);
+	Window w("My First OpenGL 3 Triangle!", 1920, 1200, true);
 
 	if (!w.HasInitialised()) {
 		return -1;

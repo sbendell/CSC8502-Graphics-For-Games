@@ -125,4 +125,6 @@ protected:
 	vector<Scene*> scenes;
 	int currentScene = 0;
 	float lastFrameFPS;
+	int timer = 0;
+	bool paused = false;
 };
