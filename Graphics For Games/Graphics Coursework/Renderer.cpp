@@ -69,9 +69,9 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent) {
 	unsigned int sTwocubeMap = LoadCubeMap("Midnight", "mp_midnight/midnight-silence_ft.tga", "mp_midnight/midnight-silence_bk.tga",
 		"mp_midnight/midnight-silence_up.tga", "mp_midnight/midnight-silence_dn.tga",
 		"mp_midnight/midnight-silence_rt.tga", "mp_midnight/midnight-silence_lf.tga");
-	unsigned int sThreecubeMap = LoadCubeMap("Nevada", "ely_nevada/nevada_ft.tga", "ely_nevada/nevada_bk.tga",
-		"ely_nevada/nevada_up.tga", "ely_nevada/nevada_dn.tga",
-		"ely_nevada/nevada_rt.tga", "ely_nevada/nevada_lf.tga");
+	unsigned int sThreecubeMap = LoadCubeMap("Nevada", "rusted_west.jpg", "rusted_east.jpg",
+		"rusted_up.jpg", "rusted_down.jpg",
+		"rusted_south.jpg", "rusted_north.jpg");
 
 	Shader* pbrShader = LoadShader("PBR", "pbrvertex.glsl", "pbrfrag.glsl");
 	Shader* terrainShader = LoadShader("Terrain", "terrainpbrvert.glsl", "terrainpbrfrag.glsl");
@@ -226,7 +226,8 @@ void Renderer::UpdateScene(float msec) {
 			timer = 0;
 		}
 	}
-	lastFrameFPS = 1.0f / msec;
+	lastFrameFPS = 1000.0f / msec;
+	cout << lastFrameFPS << endl;
 }
 
 void Renderer::RenderScene() {

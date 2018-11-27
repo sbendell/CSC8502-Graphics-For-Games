@@ -35,7 +35,8 @@ void main (void) {
 	}
 	
 	vec4 shadowProj = (shadowMatrix * vec4(pos + (normal * 1.5), 1));
-	float shadow = 1.0; // New !
+	shadowProj.z -= 0.005f;
+	float shadow = 1.0f; // New !
 
 	if(shadowProj.w > 0.0) { // New !
 		shadow = textureProj(shadowTex, shadowProj);

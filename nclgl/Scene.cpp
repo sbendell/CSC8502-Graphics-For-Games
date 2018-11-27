@@ -12,7 +12,7 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 	}
 
 	if (scene == 1) {
-		camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
+		camera = new Camera(-30.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
 			1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
 		heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
@@ -47,11 +47,11 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 		meteor->SetMaterial(renderer->GetMaterialWithName("Meteor"));
 		meteor->SetBoundingRadius(300.0f);
 		meteor->GetTransform().SetTranslation(Vector3(500.0f, 2000.0f, 500.0f));
-		meteor->GetTransform().SetScale(Vector3(-100.0f, -100.0f, -100.0f));
+		meteor->GetTransform().SetScale(Vector3(100.0f, 100.0f, 100.0f));
 		root->AddChild(meteor);
 	}
 	else if (scene == 2) {
-		camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
+		camera = new Camera(-30.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
 			1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
 		heightMap = new HeightMap(TEXTUREDIR"flat.raw");
@@ -96,7 +96,7 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 				SceneNode* newNode = new SceneNode(meteorMesh);
 				newNode->GetTransform().SetTranslation(Vector3(600.0f * x + 500.0f, 400.0f, 600.0f * z + 500.0f));
 				newNode->SetMaterial(metalMaterials[whichMat]);
-				newNode->GetTransform().SetScale(Vector3(-350.0f, -350.0f, -350.0f));
+				newNode->GetTransform().SetScale(Vector3(350.0f, 350.0f, 350.0f));
 				newNode->SetBoundingRadius(350.0f);
 				root->AddChild(newNode);
 			}
@@ -109,7 +109,7 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 		GenBuffers(LIGHTNUMS2);
 	}
 	else if (scene == 3) {
-		camera = new Camera(0.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
+		camera = new Camera(-30.0f, 0.0f, 0.0f, Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z / 2.0f),
 			1.0f, 1.0f, 10000.0f, width, height, 45.0f);
 
 		heightMap = new HeightMap(TEXTUREDIR"flat.raw");
@@ -139,7 +139,7 @@ Scene::Scene(Renderer* rend, int width, int height, OBJMesh* sphere, int scene) 
 
 		SceneNode* ball = new SceneNode(meteorMesh);
 		ball->GetTransform().SetTranslation(Vector3(3000.0f, 175.0f, 3000.0f));
-		ball->GetTransform().SetScale(Vector3(-350.0f, -350.0f, -350.0f));
+		ball->GetTransform().SetScale(Vector3(350.0f, 350.0f, 350.0f));
 		ball->SetMaterial(renderer->GetMaterialWithName("Metal Scratched"));
 		ball->SetBoundingRadius(350.0f);
 		root->AddChild(ball);
@@ -320,6 +320,16 @@ void Scene::UpdateScene(float msec) {
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_0)) {
 		drawShadows = !drawShadows;
 	}
+	cameraPos += 0.005f;
+	Vector3 newCameraPos;
+	if (scene == 1) {
+		newCameraPos = Vector3(sin(cameraPos) * 2000.0f + 2000.0f, 750.0f, cos(cameraPos) * 2000.0f + 2000.0f);
+	}
+	else {
+		newCameraPos = Vector3(sin(cameraPos) * 2000.0f * 2 + 2000.0f, 750.0f * 2, cos(cameraPos) * 2000.0f * 2 + 2000.0f);
+	}
+	camera->SetPosition(newCameraPos);
+	camera->SetYaw(cameraPos * (360.0f / (2 * PI)));
 	camera->UpdateCamera(msec);
 	frameFrustum.FromMatrix(camera->GetProjectionMatrix()*camera->GetViewMatrix());
 	root->Update(msec);
@@ -574,7 +584,7 @@ void Scene::DrawPointLights() {
 
 				tempModelMatrix =
 					pushMatrix *
-					Matrix4::Rotation(1.0f, Vector3(0, 1, 0)) *
+					Matrix4::Rotation(0.2f, Vector3(0, 1, 0)) *
 					popMatrix *
 					Matrix4::Translation(l.GetPosition()) *
 					Matrix4::Scale(Vector3(radius, radius, radius));

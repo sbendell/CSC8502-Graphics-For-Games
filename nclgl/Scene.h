@@ -94,6 +94,7 @@ protected:
 	int scene;
 	OBJMesh* meteorMesh;
 	float ballPosition = 0;
+	float cameraPos = 0;
 	int postProcess = 1;
 	bool drawShadows = true;
 };
